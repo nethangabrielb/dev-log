@@ -50,7 +50,7 @@ export class CreateSessionDto {
   type!: SessionType;
 
   @IsInt()
-  duration!: number;
+  durationInSeconds!: number;
 
   @IsDate()
   @Type(() => Date)

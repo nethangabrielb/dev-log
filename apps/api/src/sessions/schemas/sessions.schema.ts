@@ -10,7 +10,7 @@ export class Session {
   type!: SessionType;
 
   @Prop({ required: true })
-  duration!: number;
+  durationInSeconds!: number;
 
   @Prop({ required: true })
   startedAt!: Date;
