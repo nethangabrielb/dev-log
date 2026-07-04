@@ -34,9 +34,9 @@ export class Session {
       kind: { type: String, enum: LinkedToKind, required: true },
       id: { type: String, required: true },
     },
-    required: true,
+    required: false,
   })
-  linkedTo!: { kind: LinkedToKind; id: string };
+  linkedTo?: { kind: LinkedToKind; id: string };
 }
 
 export const SessionSchema = SchemaFactory.createForClass(Session);

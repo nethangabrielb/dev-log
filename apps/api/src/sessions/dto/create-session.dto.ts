@@ -67,5 +67,5 @@ export class CreateSessionDto {
 
   @ValidateNested()
   @Type(() => LinkedToDto)
-  linkedTo!: LinkedToDto;
+  linkedTo?: LinkedToDto;
 }
