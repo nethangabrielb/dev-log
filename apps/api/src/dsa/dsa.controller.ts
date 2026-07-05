@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { DsaService } from './dsa.service';
 import { CreateDsaDto } from './dto/create-dsa.dto';
 import { UpdateDsaDto } from './dto/update-dsa.dto';
@@ -19,16 +27,16 @@ export class DsaController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.dsaService.findOne(+id);
+    return this.dsaService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDsaDto: UpdateDsaDto) {
-    return this.dsaService.update(+id, updateDsaDto);
+    return this.dsaService.update(id, updateDsaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.dsaService.remove(+id);
+    return this.dsaService.remove(id);
   }
 }

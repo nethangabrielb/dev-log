@@ -20,17 +20,17 @@ export class SessionsService {
     return this.sessionModel.find().exec();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     return this.sessionModel.findById(id).exec();
   }
 
-  update(id: string, updateSessionDto: UpdateSessionDto) {
+  async update(id: string, updateSessionDto: UpdateSessionDto) {
     return this.sessionModel
       .findByIdAndUpdate(id, updateSessionDto, { new: true })
       .exec();
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.sessionModel.findByIdAndDelete(id).exec();
   }
 }

@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDsaDto } from './dto/create-dsa.dto';
 import { UpdateDsaDto } from './dto/update-dsa.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Dsa } from './entities/dsa.entity';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class DsaService {
-  create(createDsaDto: CreateDsaDto) {
-    return 'This action adds a new dsa';
+  constructor(@InjectModel(Dsa.name) private dsaModel: Model<Dsa>) {}
+
+  async create(createDsaDto: CreateDsaDto) {
+    return this.dsaModel.create(createDsaDto);
   }
 
-  findAll() {
-    return `This action returns all dsa`;
+  async findAll() {
+    return this.dsaModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} dsa`;
+  async findOne(id: string) {
+    return this.dsaModel.findById(id).exec();
   }
 
-  update(id: number, updateDsaDto: UpdateDsaDto) {
-    return `This action updates a #${id} dsa`;
+  async update(id: string, updateDsaDto: UpdateDsaDto) {
+    return this.dsaModel
+      .findByIdAndUpdate(id, updateDsaDto, { new: true })
+      .exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} dsa`;
+  async remove(id: string) {
+    return this.dsaModel.findByIdAndDelete(id).exec();
   }
 }
