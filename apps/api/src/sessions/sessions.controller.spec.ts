@@ -1,12 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SessionsController } from './sessions.controller';
 import { SessionsService } from './sessions.service';
-import {
-  CreateSessionDto,
-  LinkedToKind,
-  SessionType,
-} from './dto/create-session.dto';
+import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { LinkedToKind, SessionType } from '@devlog/types';
 
 type MockSessionsService = {
   create: jest.Mock;
