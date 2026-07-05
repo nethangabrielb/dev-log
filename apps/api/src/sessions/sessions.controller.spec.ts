@@ -48,7 +48,7 @@ describe('SessionsController', () => {
   it('should create a session through the service', async () => {
     const createSessionDto: CreateSessionDto = {
       type: SessionType.PROJECT,
-      duration: 45,
+      durationInSeconds: 45,
       startedAt: new Date('2024-01-01T10:00:00.000Z'),
       endedAt: new Date('2024-01-01T10:45:00.000Z'),
       todos: [{ name: 'Write tests', completed: false }],
@@ -83,7 +83,7 @@ describe('SessionsController', () => {
   it('should update a session through the service', async () => {
     const updateSessionDto: UpdateSessionDto = {
       type: SessionType.STUDY,
-      duration: 60,
+      durationInSeconds: 60,
     };
     const updatedSession = { id: 'session-1', ...updateSessionDto };
     service.update.mockResolvedValue(updatedSession);
