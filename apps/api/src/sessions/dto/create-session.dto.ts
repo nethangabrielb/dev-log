@@ -10,21 +10,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-// session type
-export enum SessionType {
-  PROJECT = 'Projects',
-  ARTICLE = 'Article Reading',
-  DSA = 'DSA Problems',
-  STUDY = 'Study',
-}
-
-// session linked to kind
-export enum LinkedToKind {
-  PROJECT = 'Projects',
-  ARTICLE = 'Article Reading',
-  DSA = 'DSA Problems',
-  STUDY = 'Study',
-}
+import { SessionType, LinkedToKind } from '@devlog/types';
 
 // DTO shape of Session Todo
 class TodoDto {
