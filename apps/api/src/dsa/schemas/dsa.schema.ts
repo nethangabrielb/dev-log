@@ -12,16 +12,16 @@ export class Dsa {
   @Prop({ required: true })
   problemNumber!: number;
 
-  @Prop({ required: true, enum: Difficulty })
+  @Prop({ required: true, type: String, enum: Difficulty })
   difficulty!: Difficulty;
 
-  @Prop({ required: true, enum: DsaPattern })
+  @Prop({ required: true, type: String, enum: DsaPattern })
   pattern!: DsaPattern;
 
   @Prop({ default: false })
   isSolved!: boolean;
 
-  @Prop({ required: true, enum: ConfidenceLevel })
+  @Prop({ required: true, type: String, enum: ConfidenceLevel })
   confidenceLevel!: ConfidenceLevel;
 
   @Prop()
