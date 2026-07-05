@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { LinkedToKind, SessionType } from '../dto/create-session.dto';
+import { LinkedToKind, SessionType } from '@devlog/types';
 
 export type SessionDocument = HydratedDocument<Session>;
 
