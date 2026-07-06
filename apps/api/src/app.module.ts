@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SessionsModule } from './sessions/sessions.module';
 import { DsaModule } from './dsa/dsa.module';
 import { SnippetsModule } from './snippets/snippets.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SnippetsModule } from './snippets/snippets.module';
     SessionsModule,
     DsaModule,
     SnippetsModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
