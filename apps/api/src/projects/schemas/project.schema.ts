@@ -9,13 +9,17 @@ export class Project {
   @Prop({ required: true })
   name!: string;
 
-  @Prop({ required: true, enum: ProjectCategory })
+  @Prop({ required: true, type: String, enum: ProjectCategory })
   category!: ProjectCategory;
 
   @Prop()
   description?: string;
 
-  @Prop({ enum: ProjectStatus, default: ProjectStatus.ACTIVE })
+  @Prop({
+    type: String,
+    enum: ProjectStatus,
+    default: ProjectStatus.ACTIVE,
+  })
   status?: ProjectStatus;
 
   @Prop({ default: [] })
