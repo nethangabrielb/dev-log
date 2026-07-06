@@ -1,6 +1,13 @@
 {
   "name": "@devlog/types",
   "version": "0.0.1",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts"
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
 }
