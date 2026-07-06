@@ -8,9 +8,9 @@ export class CreateSnippetDto {
   @IsString()
   content!: string;
 
-  @IsOptional()
   @IsString()
-  description!: string;
+  @IsOptional()
+  description?: string;
 
   @IsEnum(SnippetLanguage)
   language!: SnippetLanguage;
