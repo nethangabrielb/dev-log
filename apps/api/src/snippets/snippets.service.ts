@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Snippet, SnippetDocument } from './schemas/snippets.schema';
 
 @Injectable()
 export class SnippetsService {
-  create(createSnippetDto: CreateSnippetDto) {
-    return 'This action adds a new snippet';
+  constructor(
+    @InjectModel(Snippet.name)
+    private readonly snippetModel: Model<SnippetDocument>,
+  ) {}
+
+  async create(createSnippetDto: CreateSnippetDto) {
+    return this.snippetModel.create(createSnippetDto);
   }
 
-  findAll() {
-    return `This action returns all snippets`;
+  async findAll() {
+    return this.snippetModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} snippet`;
+  async findOne(id: string) {
+    return this.snippetModel.findById(id).exec();
   }
 
-  update(id: number, updateSnippetDto: UpdateSnippetDto) {
-    return `This action updates a #${id} snippet`;
+  async update(id: string, updateSnippetDto: UpdateSnippetDto) {
+    return this.snippetModel
+      .findByIdAndUpdate(id, updateSnippetDto, { new: true })
+      .exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} snippet`;
+  async remove(id: string) {
+    return this.snippetModel.findByIdAndDelete(id).exec();
   }
 }
