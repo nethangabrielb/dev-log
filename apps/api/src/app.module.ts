@@ -7,6 +7,8 @@ import { SessionsModule } from './sessions/sessions.module';
 import { DsaModule } from './dsa/dsa.module';
 import { SnippetsModule } from './snippets/snippets.module';
 import { ProjectsModule } from './projects/projects.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { ProjectsModule } from './projects/projects.module';
     DsaModule,
     SnippetsModule,
     ProjectsModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
