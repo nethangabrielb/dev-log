@@ -6,9 +6,9 @@ import bcrypt from 'bcryptjs';
 export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(identifier: string, pass: string): Promise<any> {
     // fetch user
-    const user = await this.usersService.findByIdentifier(username);
+    const user = await this.usersService.findByIdentifier(identifier);
 
     // check if user exists
     if (!user) {
