@@ -33,6 +33,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_' },
+      ],
     },
   },
 );
