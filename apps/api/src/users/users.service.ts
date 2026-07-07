@@ -14,11 +14,9 @@ export class UsersService {
     return this.userModel.create(createUserDto);
   }
 
-  async findByUsername(username: string) {
-    return this.userModel.findOne({ username }).exec();
-  }
-
-  async findByEmail(email: string) {
-    return this.userModel.findOne({ email }).exec();
+  async findByIdentifier(identifier: string) {
+    return this.userModel.findOne({
+      $or: [{ email: identifier }, { username: identifier }],
+    });
   }
 }
