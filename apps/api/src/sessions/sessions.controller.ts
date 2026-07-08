@@ -19,19 +19,23 @@ export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto) {
-    return this.sessionsService.create(createSessionDto);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createSessionDto: CreateSessionDto, @Req() req: any) {
+    const userId = req.user.userId;
+    return this.sessionsService.create(createSessionDto, userId);
   }
 
   @Get()
-  findAll() {
-    return this.sessionsService.findAll();
+  @UseGuards(JwtAuthGuard)
+  findAll(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.sessionsService.findAll(userId);
   }
 
   @Get('statistics')
   @UseGuards(JwtAuthGuard)
   getStatistics(@Req() req: any) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     return this.sessionsService.getStatistics(userId);
   }
 
