@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -23,6 +24,12 @@ export class SessionsController {
   @Get()
   findAll() {
     return this.sessionsService.findAll();
+  }
+
+  @Get('statistics')
+  getStatistics(@Req() req: any) {
+    const userId = req.user.id;
+    return this.sessionsService.getStatistics(userId);
   }
 
   @Get(':id')
