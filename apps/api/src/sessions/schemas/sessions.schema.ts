@@ -9,6 +9,9 @@ export class Session {
   @Prop({ type: String, enum: SessionType, required: true })
   type!: SessionType;
 
+  @Prop({ type: String, required: true })
+  userId!: string;
+
   @Prop({ required: true })
   durationInSeconds!: number;
 
