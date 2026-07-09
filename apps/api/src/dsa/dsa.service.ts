@@ -73,7 +73,7 @@ export class DsaService {
           _id: {
             $dateToString: {
               format: '%Y-%m-%d',
-              date: '$createdAt',
+              date: '$solvedAt',
               timezone: 'Asia/Manila',
             },
           },
@@ -120,7 +120,7 @@ export class DsaService {
           _id: {
             $dateToString: {
               format: '%Y-%m-%d',
-              date: '$createdAt',
+              date: '$solvedAt',
               timezone: 'Asia/Manila',
             },
           },
@@ -188,12 +188,18 @@ export class DsaService {
         {
           $match: {
             userId,
-            startedAt: { $gte: fourteenDaysAgo },
+            solvedAt: { $gte: fourteenDaysAgo },
           },
         },
         {
           $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$solvedAt' } },
+            _id: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$solvedAt',
+                timezone: 'Asia/Manila',
+              },
+            },
             count: { $sum: 1 },
           },
         },

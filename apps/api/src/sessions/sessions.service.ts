@@ -142,7 +142,7 @@ export class SessionsService {
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$startedAt' } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$solvedAt' } },
           count: { $sum: 1 },
         },
       },

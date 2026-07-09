@@ -4,9 +4,11 @@ import {
   IsBoolean,
   IsEnum,
   IsOptional,
+  IsDate,
 } from 'class-validator';
 
 import { Difficulty, DsaPattern, ConfidenceLevel } from '@devlog/types';
+import { Type } from 'class-transformer';
 
 export class CreateDsaDto {
   @IsString()
@@ -24,6 +26,11 @@ export class CreateDsaDto {
   @IsOptional()
   @IsBoolean()
   isSolved!: boolean;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  solvedAt?: Date;
 
   @IsEnum(ConfidenceLevel)
   confidenceLevel!: ConfidenceLevel;

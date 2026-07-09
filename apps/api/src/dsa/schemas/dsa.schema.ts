@@ -24,6 +24,9 @@ export class Dsa {
   @Prop({ default: false })
   isSolved!: boolean;
 
+  @Prop({ required: true })
+  solvedAt?: Date;
+
   @Prop({ required: true, type: String, enum: ConfidenceLevel })
   confidenceLevel!: ConfidenceLevel;
 
