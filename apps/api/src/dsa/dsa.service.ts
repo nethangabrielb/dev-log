@@ -9,6 +9,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Dsa } from './entities/dsa.entity';
 import { Model, Types } from 'mongoose';
 import { DsaDocument } from './schemas/dsa.schema';
+import {
+  DsaStatistics,
+  BreakdownByDifficulty,
+  BreakdownByPattern,
+  ProblemSolvedOverTime,
+} from '@devlog/types';
 
 @Injectable()
 export class DsaService {
@@ -146,28 +152,45 @@ export class DsaService {
     return longest;
   }
 
-  private async getBreakdownByDifficulty(userId: string) {
-    return this.dsaModel
+  private async getBreakdownByDifficulty(
+    userId: string,
+  ): Promise<BreakdownByDifficulty[]> {
+    const res = await this.dsaModel
       .aggregate([
         { $match: { userId } },
         { $group: { _id: '$difficulty', count: { $sum: 1 } } },
       ])
       .exec();
+
+    return res as BreakdownByDifficulty[];
   }
 
-  private async getBreakdownByPattern(userId: string) {
-    return this.dsaModel
+  private async getBreakdownByPattern(
+    userId: string,
+  ): Promise<BreakdownByPattern[]> {
+    const res = await this.dsaModel
       .aggregate([
         { $match: { userId } },
         { $group: { _id: '$pattern', count: { $sum: 1 } } },
       ])
       .exec();
+    return res as BreakdownByPattern[];
   }
 
-  private async getProblemsSolvedOverTime(userId: string) {
-    return this.dsaModel
+  private async getProblemsSolvedOverTime(
+    userId: string,
+  ): Promise<ProblemSolvedOverTime[]> {
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const res = await this.dsaModel
       .aggregate([
-        { $match: { userId, isSolved: true } },
+        {
+          $match: {
+            userId,
+            startedAt: { $gte: fourteenDaysAgo },
+          },
+        },
         {
           $group: {
             _id: { $dateToString: { format: '%Y-%m-%d', date: '$solvedAt' } },
@@ -177,9 +200,11 @@ export class DsaService {
         { $sort: { _id: 1 } },
       ])
       .exec();
+
+    return res as ProblemSolvedOverTime[];
   }
 
-  async getStatistics(userId: string) {
+  async getStatistics(userId: string): Promise<DsaStatistics> {
     const [
       totalProblemsSolved,
       currentStreak,
