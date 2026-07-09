@@ -33,17 +33,24 @@ export class DsaController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dsaService.findOne(id);
+  findOne(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.dsaService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDsaDto: UpdateDsaDto) {
-    return this.dsaService.update(id, updateDsaDto);
+  update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() updateDsaDto: UpdateDsaDto,
+  ) {
+    const userId = req.user.userId;
+    return this.dsaService.update(id, updateDsaDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dsaService.remove(id);
+  remove(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.dsaService.remove(id, userId);
   }
 }

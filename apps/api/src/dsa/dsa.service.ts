@@ -1,13 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDsaDto } from './dto/create-dsa.dto';
 import { UpdateDsaDto } from './dto/update-dsa.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Dsa } from './entities/dsa.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { DsaDocument } from './schemas/dsa.schema';
 
 @Injectable()
 export class DsaService {
-  constructor(@InjectModel(Dsa.name) private dsaModel: Model<Dsa>) {}
+  constructor(@InjectModel(Dsa.name) private dsaModel: Model<DsaDocument>) {}
 
   // CRUD for DSA
   async create(createDsaDto: CreateDsaDto, userId: string) {
@@ -18,18 +23,35 @@ export class DsaService {
     return this.dsaModel.find().exec();
   }
 
-  async findOne(id: string) {
-    return this.dsaModel.findById(id).exec();
+  async findOne(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
+    const dsa = await this.dsaModel.findById(id).exec();
+    if (!dsa || dsa.userId.toString() !== userId) {
+      throw new NotFoundException('DSA not found');
+    }
+    return dsa;
   }
 
-  async update(id: string, updateDsaDto: UpdateDsaDto) {
-    return this.dsaModel
-      .findByIdAndUpdate(id, updateDsaDto, { new: true })
-      .exec();
+  async update(id: string, updateDsaDto: UpdateDsaDto, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
+    const dsa = await this.dsaModel.findById(id).exec();
+    if (!dsa || dsa.userId.toString() !== userId) {
+      throw new NotFoundException('DSA not found');
+    }
+    Object.assign(dsa, updateDsaDto);
+    return dsa.save();
   }
 
-  async remove(id: string) {
-    return this.dsaModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
+    const dsa = await this.dsaModel.findById(id).exec();
+    if (!dsa || dsa.userId.toString() !== userId) {
+      throw new NotFoundException('DSA not found');
+    }
+    return dsa.deleteOne();
   }
 
   // STATISTICS
