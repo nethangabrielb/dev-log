@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
 import {
   TotalByType,
@@ -33,6 +37,8 @@ export class SessionsService {
   }
 
   async findOne(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
     const session = await this.sessionModel.findById(id).exec();
     if (!session || session.userId.toString() !== userId) {
       throw new NotFoundException('Session not found');
@@ -41,6 +47,8 @@ export class SessionsService {
   }
 
   async update(id: string, updateSessionDto: UpdateSessionDto, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
     const session = await this.sessionModel.findById(id).exec();
     if (!session || session.userId.toString() !== userId) {
       throw new NotFoundException('Session not found');
@@ -50,6 +58,8 @@ export class SessionsService {
   }
 
   async remove(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('Invalid ID');
     const session = await this.sessionModel.findById(id).exec();
     if (!session || session.userId.toString() !== userId) {
       throw new NotFoundException('Session not found');
