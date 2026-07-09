@@ -14,6 +14,7 @@ import type { Response } from 'express';
 import { UserDocument } from '../users/schemas/users.schema';
 import { UsersService } from '../users/users.service';
 import bcrypt from 'bcryptjs';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +23,7 @@ export class AuthController {
     private userService: UsersService,
   ) {}
 
+  @Public()
   @Post('/register')
   async register(@Body() body: CreateUserDto) {
     // hash password
@@ -31,6 +33,7 @@ export class AuthController {
     return { success: true, message: 'User registered successfully', user };
   }
 
+  @Public()
   @UseGuards(LocalAuthGuard)
   @HttpCode(200)
   @Post('/login')
