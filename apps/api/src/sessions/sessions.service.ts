@@ -69,7 +69,7 @@ export class SessionsService {
       { $group: { _id: null, averageDuration: { $avg: '$totalDuration' } } },
     ]);
 
-    return result[0] || null;
+    return (result[0] as AveragePerDay) || null;
   }
 
   private async getMostProductiveDay(
@@ -87,7 +87,7 @@ export class SessionsService {
       { $limit: 1 },
     ]);
 
-    return result[0] || null;
+    return (result[0] as MostProductiveDay) || null;
   }
 
   private async getTotalTimeSpent(userId: string): Promise<TotalTimeSpent> {
@@ -97,7 +97,7 @@ export class SessionsService {
         $group: { _id: null, totalDuration: { $sum: '$durationInSeconds' } },
       },
     ]);
-    return result[0] || null;
+    return (result[0] as TotalTimeSpent) || null;
   }
 
   private async getTotalSessions(userId: string): Promise<number> {
