@@ -35,17 +35,24 @@ export class SessionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sessionsService.findOne(id);
+  findOne(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.sessionsService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
-    return this.sessionsService.update(id, updateSessionDto);
+  update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() updateSessionDto: UpdateSessionDto,
+  ) {
+    const userId = req.user.userId;
+    return this.sessionsService.update(id, updateSessionDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sessionsService.remove(id);
+  remove(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.sessionsService.remove(id, userId);
   }
 }

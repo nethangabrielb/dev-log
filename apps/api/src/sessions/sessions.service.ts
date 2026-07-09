@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -32,18 +32,29 @@ export class SessionsService {
     return this.sessionModel.find({ userId }).exec();
   }
 
-  async findOne(id: string) {
-    return this.sessionModel.findById(id).exec();
+  async findOne(id: string, userId: string) {
+    const session = await this.sessionModel.findById(id).exec();
+    if (!session || session.userId.toString() !== userId) {
+      throw new NotFoundException('Session not found');
+    }
+    return session;
   }
 
-  async update(id: string, updateSessionDto: UpdateSessionDto) {
-    return this.sessionModel
-      .findByIdAndUpdate(id, updateSessionDto, { new: true })
-      .exec();
+  async update(id: string, updateSessionDto: UpdateSessionDto, userId: string) {
+    const session = await this.sessionModel.findById(id).exec();
+    if (!session || session.userId.toString() !== userId) {
+      throw new NotFoundException('Session not found');
+    }
+    Object.assign(session, updateSessionDto);
+    return session.save();
   }
 
-  async remove(id: string) {
-    return this.sessionModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string) {
+    const session = await this.sessionModel.findById(id).exec();
+    if (!session || session.userId.toString() !== userId) {
+      throw new NotFoundException('Session not found');
+    }
+    return session.deleteOne();
   }
 
   // STATISTICS
