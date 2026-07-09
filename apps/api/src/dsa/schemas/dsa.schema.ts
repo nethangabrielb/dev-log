@@ -9,6 +9,9 @@ export class Dsa {
   @Prop({ required: true })
   problemName!: string;
 
+  @Prop({ type: String, required: true })
+  userId!: string;
+
   @Prop({ required: true })
   problemNumber!: number;
 
