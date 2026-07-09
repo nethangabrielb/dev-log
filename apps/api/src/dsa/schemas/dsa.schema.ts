@@ -9,6 +9,9 @@ export class Dsa {
   @Prop({ required: true })
   problemName!: string;
 
+  @Prop({ type: String, required: true })
+  userId!: string;
+
   @Prop({ required: true })
   problemNumber!: number;
 
@@ -20,6 +23,9 @@ export class Dsa {
 
   @Prop({ default: false })
   isSolved!: boolean;
+
+  @Prop({ required: true })
+  solvedAt?: Date;
 
   @Prop({ required: true, type: String, enum: ConfidenceLevel })
   confidenceLevel!: ConfidenceLevel;
