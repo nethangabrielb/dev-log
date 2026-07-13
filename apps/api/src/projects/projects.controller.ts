@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -16,27 +17,40 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
+  create(@Req() req: any, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.create(createProjectDto, req.user.userId);
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Req() req: any) {
+    return this.projectsService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(+id);
+  findOne(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.projectsService.findOne(id, userId);
+  }
+
+  @Get(':id/stats')
+  getStats(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.projectsService.getStats(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+  update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    const userId = req.user.userId;
+    return this.projectsService.update(id, updateProjectDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
+  remove(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.projectsService.remove(id, userId);
   }
 }

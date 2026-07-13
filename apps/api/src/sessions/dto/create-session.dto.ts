@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsMongoId,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -46,6 +47,7 @@ export class CreateSessionDto {
   @Type(() => Date)
   endedAt!: Date;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TodoDto)

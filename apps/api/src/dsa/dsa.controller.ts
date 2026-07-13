@@ -22,8 +22,9 @@ export class DsaController {
   }
 
   @Get()
-  findAll() {
-    return this.dsaService.findAll();
+  findAll(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.dsaService.findAll(userId);
   }
 
   @Get('statistics')

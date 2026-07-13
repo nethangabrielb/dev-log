@@ -9,6 +9,9 @@ export class Project {
   @Prop({ required: true })
   name!: string;
 
+  @Prop({ required: true })
+  userId!: string;
+
   @Prop({ required: true, type: String, enum: ProjectCategory })
   category!: ProjectCategory;
 
