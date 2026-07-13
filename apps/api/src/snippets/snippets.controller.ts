@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { SnippetsService } from './snippets.service';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
@@ -16,27 +17,31 @@ export class SnippetsController {
   constructor(private readonly snippetsService: SnippetsService) {}
 
   @Post()
-  create(@Body() createSnippetDto: CreateSnippetDto) {
-    return this.snippetsService.create(createSnippetDto);
+  create(@Req() req, @Body() createSnippetDto: CreateSnippetDto) {
+    return this.snippetsService.create(createSnippetDto, req.user.userId);
   }
 
   @Get()
-  findAll() {
-    return this.snippetsService.findAll();
+  findAll(@Req() req) {
+    return this.snippetsService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.snippetsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.snippetsService.findOne(id, req.user.userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSnippetDto: UpdateSnippetDto) {
-    return this.snippetsService.update(id, updateSnippetDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateSnippetDto: UpdateSnippetDto,
+    @Req() req,
+  ) {
+    return this.snippetsService.update(id, updateSnippetDto, req.user.userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.snippetsService.remove(id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.snippetsService.remove(id, req.user.userId);
   }
 }

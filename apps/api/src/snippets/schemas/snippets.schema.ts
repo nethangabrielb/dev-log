@@ -9,6 +9,9 @@ export class Snippet {
   @Prop({ required: true })
   title!: string;
 
+  @Prop({ required: true })
+  userId!: string;
+
   @Prop()
   description?: string;
 

@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Snippet, SnippetDocument } from './schemas/snippets.schema';
 
 @Injectable()
@@ -12,25 +12,45 @@ export class SnippetsService {
     private readonly snippetModel: Model<SnippetDocument>,
   ) {}
 
-  async create(createSnippetDto: CreateSnippetDto) {
-    return this.snippetModel.create(createSnippetDto);
+  async create(createSnippetDto: CreateSnippetDto, userId: string) {
+    return this.snippetModel.create({ ...createSnippetDto, userId });
   }
 
-  async findAll() {
-    return this.snippetModel.find().exec();
+  async findAll(userId: string) {
+    return this.snippetModel.find({ userId }).exec();
   }
 
-  async findOne(id: string) {
-    return this.snippetModel.findById(id).exec();
+  async findOne(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const snippet = await this.snippetModel.findById(id).exec();
+    if (!snippet || snippet.userId !== userId) {
+      throw new NotFoundException('Snippet not found');
+    }
+    return snippet;
   }
 
-  async update(id: string, updateSnippetDto: UpdateSnippetDto) {
-    return this.snippetModel
-      .findByIdAndUpdate(id, updateSnippetDto, { new: true })
-      .exec();
+  async update(id: string, updateSnippetDto: UpdateSnippetDto, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const snippet = await this.snippetModel.findById(id).exec();
+    if (!snippet || snippet.userId !== userId) {
+      throw new NotFoundException('Snippet not found');
+    }
+    Object.assign(snippet, updateSnippetDto);
+    return snippet.save();
   }
 
-  async remove(id: string) {
-    return this.snippetModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const snippet = await this.snippetModel.findById(id).exec();
+    if (!snippet || snippet.userId !== userId) {
+      throw new NotFoundException('Snippet not found');
+    }
+    return snippet.deleteOne();
   }
 }
