@@ -25,8 +25,8 @@ export class DsaService {
     return this.dsaModel.create({ ...createDsaDto, userId });
   }
 
-  async findAll() {
-    return this.dsaModel.find().exec();
+  async findAll(userId: string) {
+    return this.dsaModel.find({ userId }).exec();
   }
 
   async findOne(id: string, userId: string) {
