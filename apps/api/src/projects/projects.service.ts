@@ -88,7 +88,7 @@ export class ProjectsService {
       { $count: 'totalCompleted' },
     ]);
 
-    return sessions[0] ?? { totalCompleted: 0 };
+    return (sessions[0] as TasksCompleted) ?? { totalCompleted: 0 };
   }
 
   async getSessionFrequencyOverTime(projectId: string, userId: string) {
