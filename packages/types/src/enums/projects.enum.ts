@@ -3,6 +3,7 @@ export enum ProjectCategory {
   ACADEMIC = "academic",
   PROFESSIONAL = "professional",
   OPEN_SOURCE = "open-source",
+  OTHER = "other",
 }
 
 export enum ProjectStatus {
