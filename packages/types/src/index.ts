@@ -5,3 +5,4 @@ export * from "./enums/projects.enum";
 
 export * from "./interfaces/sessionStatistics.types";
 export * from "./interfaces/dsaStatistics.types";
+export * from "./interfaces/projectStatistics.types";

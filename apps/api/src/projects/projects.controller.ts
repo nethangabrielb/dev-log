@@ -32,6 +32,12 @@ export class ProjectsController {
     return this.projectsService.findOne(id, userId);
   }
 
+  @Get(':id/stats')
+  getStats(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.projectsService.getStats(id, userId);
+  }
+
   @Patch(':id')
   update(
     @Req() req: any,
