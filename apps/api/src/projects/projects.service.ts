@@ -125,6 +125,10 @@ export class ProjectsService {
     if (!Types.ObjectId.isValid(id))
       throw new BadRequestException('Invalid ID');
 
+    const project = await this.projectModel.findById(id).exec();
+    if (!project || project.userId !== userId)
+      throw new NotFoundException('Project not found');
+
     const [totalTimeLogged, tasksCompleted, sessionFrequencyOverTime] =
       await Promise.all([
         this.getTotalTimeLogged(id, userId),
