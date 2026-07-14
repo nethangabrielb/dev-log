@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { Model, Types } from 'mongoose';
@@ -21,7 +25,7 @@ export class ArticlesService {
 
   async findOne(id: string, userId: string) {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Invalid ID');
+      throw new BadRequestException('Invalid ID');
     }
     const article = await this.articleModel.findById(id).exec();
     if (!article || article.userId !== userId) {
@@ -32,7 +36,7 @@ export class ArticlesService {
 
   async update(id: string, updateArticleDto: UpdateArticleDto, userId: string) {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Invalid ID');
+      throw new BadRequestException('Invalid ID');
     }
     const article = await this.articleModel.findById(id).exec();
     if (!article || article.userId !== userId) {
@@ -44,7 +48,7 @@ export class ArticlesService {
 
   async remove(id: string, userId: string) {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Invalid ID');
+      throw new BadRequestException('Invalid ID');
     }
     const article = await this.articleModel.findById(id).exec();
     if (!article || article.userId !== userId) {
