@@ -15,7 +15,7 @@ export class Article {
   @Prop({ required: true })
   title!: string;
 
-  @Prop({ required: true, enum: ArticleCategory })
+  @Prop({ required: true, type: String, enum: ArticleCategory })
   category!: ArticleCategory;
 
   @Prop({ required: false })
@@ -24,7 +24,12 @@ export class Article {
   @Prop({ required: false, type: [String] })
   tags?: string[];
 
-  @Prop({ required: false, enum: ArticleStatus, default: ArticleStatus.UNREAD })
+  @Prop({
+    required: false,
+    type: String,
+    enum: ArticleStatus,
+    default: ArticleStatus.UNREAD,
+  })
   status?: ArticleStatus;
 }
 

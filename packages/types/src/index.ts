@@ -7,3 +7,4 @@ export * from "./enums/articles.enum";
 export * from "./interfaces/sessionStatistics.types";
 export * from "./interfaces/dsaStatistics.types";
 export * from "./interfaces/projectStatistics.types";
+export * from "./interfaces/articlesStatistics.types";

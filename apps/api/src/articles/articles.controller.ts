@@ -31,6 +31,11 @@ export class ArticlesController {
     return this.articlesService.findOne(id, req.user.userId);
   }
 
+  @Get('statistics')
+  getStatistics(@Req() req) {
+    return this.articlesService.getStatistics(req.user.userId);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,
