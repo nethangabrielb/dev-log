@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Article } from './schema/articles.schema';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -11,23 +11,45 @@ export class ArticlesService {
     @InjectModel(Article.name) private readonly articleModel: Model<Article>,
   ) {}
 
-  create(createArticleDto: CreateArticleDto) {
-    return 'This action adds a new article';
+  async create(createArticleDto: CreateArticleDto, userId: string) {
+    return this.articleModel.create({ ...createArticleDto, userId });
   }
 
-  findAll() {
-    return `This action returns all articles`;
+  async findAll(userId: string) {
+    return this.articleModel.find({ userId }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} article`;
+  async findOne(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const article = await this.articleModel.findById(id).exec();
+    if (!article || article.userId !== userId) {
+      throw new NotFoundException('Article not found');
+    }
+    return article;
   }
 
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`;
+  async update(id: string, updateArticleDto: UpdateArticleDto, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const article = await this.articleModel.findById(id).exec();
+    if (!article || article.userId !== userId) {
+      throw new NotFoundException('Article not found');
+    }
+    Object.assign(article, updateArticleDto);
+    return article.save();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} article`;
+  async remove(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid ID');
+    }
+    const article = await this.articleModel.findById(id).exec();
+    if (!article || article.userId !== userId) {
+      throw new NotFoundException('Article not found');
+    }
+    return article.deleteOne();
   }
 }
