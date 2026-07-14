@@ -26,14 +26,14 @@ export class ArticlesController {
     return this.articlesService.findAll(req.user.userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @Req() req) {
-    return this.articlesService.findOne(id, req.user.userId);
-  }
-
   @Get('statistics')
   getStatistics(@Req() req) {
     return this.articlesService.getStatistics(req.user.userId);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.articlesService.findOne(id, req.user.userId);
   }
 
   @Patch(':id')
