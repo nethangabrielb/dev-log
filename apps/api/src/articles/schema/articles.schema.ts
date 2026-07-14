@@ -18,6 +18,9 @@ export class Article {
   @Prop({ required: true, enum: ArticleCategory })
   category!: ArticleCategory;
 
+  @Prop({ required: false })
+  readAt?: Date;
+
   @Prop({ required: false, type: [String] })
   tags?: string[];
 

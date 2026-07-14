@@ -8,6 +8,7 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { Model, Types } from 'mongoose';
 import { Article } from './schema/articles.schema';
 import { InjectModel } from '@nestjs/mongoose';
+import { ArticleStatus } from '@devlog/types';
 
 @Injectable()
 export class ArticlesService {
@@ -43,6 +44,11 @@ export class ArticlesService {
       throw new NotFoundException('Article not found');
     }
     Object.assign(article, updateArticleDto);
+    if (article.status === ArticleStatus.READ) {
+      article.readAt ??= new Date();
+    } else {
+      article.readAt = undefined;
+    }
     return article.save();
   }
 
