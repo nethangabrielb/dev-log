@@ -28,6 +28,12 @@ export class SessionsController {
     return this.sessionsService.findAll(userId);
   }
 
+  @Get('streaks')
+  getStreaks(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.sessionsService.getStreaks(userId);
+  }
+
   @Get('statistics')
   getStatistics(@Req() req: any) {
     const userId = req.user.userId;

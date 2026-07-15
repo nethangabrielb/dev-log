@@ -15,6 +15,7 @@ import {
   TotalTimeSpent,
   SessionCountOverTime,
   SessionStatistics,
+  SessionType,
 } from '@devlog/types';
 
 @Injectable()
@@ -150,9 +151,15 @@ export class SessionsService {
     ]);
   }
 
-  private async getCurrentStreak(userId: string): Promise<number> {
+  private async getLongestStreak(
+    userId: string,
+    type?: SessionType,
+  ): Promise<number> {
+    const match: Record<string, any> = { userId };
+    if (type) match.type = type;
+
     const days: Array<{ _id: string }> = await this.sessionModel.aggregate([
-      { $match: { userId } },
+      { $match: match },
       {
         $group: {
           _id: {
@@ -169,32 +176,72 @@ export class SessionsService {
 
     if (days.length === 0) return 0;
 
-    const dates: string[] = days.map((d) => d._id);
+    const toDayNumber = (s: string) => {
+      const [year, month, day] = s.split('-').map(Number);
+      return Date.UTC(year, month - 1, day) / 86400000;
+    };
 
+    const dates = days.map((d) => d._id);
+    let current = 1;
+    let longest = 1;
+
+    for (let i = 1; i < dates.length; i++) {
+      if (toDayNumber(dates[i - 1]) - toDayNumber(dates[i]) === 1) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 1;
+      }
+    }
+
+    return longest;
+  }
+
+  private async getCurrentStreak(
+    userId: string,
+    type?: SessionType,
+  ): Promise<number> {
+    const match: Record<string, any> = { userId };
+    if (type) match.type = type;
+
+    const days: Array<{ _id: string }> = await this.sessionModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$startedAt',
+              timezone: 'Asia/Manila',
+            },
+          },
+        },
+      },
+      { $sort: { _id: -1 } },
+    ]);
+
+    if (days.length === 0) return 0;
+
+    const dates = days.map((d) => d._id);
     const todayStr = new Date().toLocaleDateString('en-CA', {
       timeZone: 'Asia/Manila',
     });
-    const yesterdayStr = new Date(Date.now() - 86400000).toLocaleDateString(
-      'en-CA',
-      { timeZone: 'Asia/Manila' },
-    );
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Manila',
+    });
 
-    if (dates[0] !== todayStr && dates[0] !== yesterdayStr) {
-      return 0;
-    }
+    if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0;
 
-    const toDayNumber = (dateString: string) => {
-      const [year, month, day] = dateString.split('-').map(Number);
+    const toDayNumber = (s: string) => {
+      const [year, month, day] = s.split('-').map(Number);
       return Date.UTC(year, month - 1, day) / 86400000;
     };
 
     let streak = 1;
-
     for (let i = 1; i < dates.length; i++) {
-      const previousDay = toDayNumber(dates[i - 1]);
-      const currentDay = toDayNumber(dates[i]);
-
-      if (previousDay - currentDay === 1) {
+      if (toDayNumber(dates[i - 1]) - toDayNumber(dates[i]) === 1) {
         streak++;
       } else {
         break;
@@ -202,6 +249,22 @@ export class SessionsService {
     }
 
     return streak;
+  }
+
+  async getStreaks(userId: string) {
+    const types = Object.values(SessionType);
+
+    const results = await Promise.all(
+      types.map(async (type) => {
+        const [currentStreak, longestStreak] = await Promise.all([
+          this.getCurrentStreak(userId, type),
+          this.getLongestStreak(userId, type),
+        ]);
+        return { type, currentStreak, longestStreak };
+      }),
+    );
+
+    return results;
   }
 
   async getStatistics(userId: string): Promise<SessionStatistics> {
