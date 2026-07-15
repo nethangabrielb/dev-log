@@ -1,15 +1,15 @@
 export interface BreakdownByDifficulty {
-  _id: string;
+  difficulty: string;
   count: number;
 }
 
 export interface BreakdownByPattern {
-  _id: string;
+  pattern: string;
   count: number;
 }
 
 export interface ProblemSolvedOverTime {
-  _id: string;
+  date: string;
   count: number;
 }
 

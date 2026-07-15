@@ -130,29 +130,42 @@ export class SessionsService {
 
   private async getSessionCountOverTime(
     userId: string,
+    timezone: string,
   ): Promise<SessionCountOverTime[]> {
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    return this.sessionModel.aggregate([
-      {
-        $match: {
-          userId,
-          startedAt: { $gte: fourteenDaysAgo },
-        },
-      },
+    const results = await this.sessionModel.aggregate([
+      { $match: { userId, startedAt: { $gte: fourteenDaysAgo } } },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$startedAt' } },
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$startedAt',
+              timezone,
+            },
+          },
           count: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
+
+    const today = new Date();
+    const days = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (13 - i));
+      return d.toLocaleDateString('en-CA', { timeZone: timezone });
+    });
+
+    const map = Object.fromEntries(results.map((r) => [r._id, r.count]));
+    return days.map((date) => ({ date, count: map[date] ?? 0 }));
   }
 
   private async getLongestStreak(
     userId: string,
+    timezone: string,
     type?: SessionType,
   ): Promise<number> {
     const match: Record<string, any> = { userId };
@@ -166,7 +179,7 @@ export class SessionsService {
             $dateToString: {
               format: '%Y-%m-%d',
               date: '$startedAt',
-              timezone: 'Asia/Manila',
+              timezone,
             },
           },
         },
@@ -199,6 +212,7 @@ export class SessionsService {
 
   private async getCurrentStreak(
     userId: string,
+    timezone: string,
     type?: SessionType,
   ): Promise<number> {
     const match: Record<string, any> = { userId };
@@ -212,7 +226,7 @@ export class SessionsService {
             $dateToString: {
               format: '%Y-%m-%d',
               date: '$startedAt',
-              timezone: 'Asia/Manila',
+              timezone,
             },
           },
         },
@@ -224,12 +238,12 @@ export class SessionsService {
 
     const dates = days.map((d) => d._id);
     const todayStr = new Date().toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Manila',
+      timeZone: timezone,
     });
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Manila',
+      timeZone: timezone,
     });
 
     if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0;
@@ -251,14 +265,14 @@ export class SessionsService {
     return streak;
   }
 
-  async getStreaks(userId: string) {
+  async getStreaks(userId: string, timezone: string) {
     const types = Object.values(SessionType);
 
     const results = await Promise.all(
       types.map(async (type) => {
         const [currentStreak, longestStreak] = await Promise.all([
-          this.getCurrentStreak(userId, type),
-          this.getLongestStreak(userId, type),
+          this.getCurrentStreak(userId, timezone, type),
+          this.getLongestStreak(userId, timezone, type),
         ]);
         return { type, currentStreak, longestStreak };
       }),
@@ -267,7 +281,10 @@ export class SessionsService {
     return results;
   }
 
-  async getStatistics(userId: string): Promise<SessionStatistics> {
+  async getStatistics(
+    userId: string,
+    timezone: string,
+  ): Promise<SessionStatistics> {
     const [
       totalByType,
       averagePerDay,
@@ -282,8 +299,8 @@ export class SessionsService {
       this.getMostProductiveDay(userId),
       this.getTotalTimeSpent(userId),
       this.getTotalSessions(userId),
-      this.getSessionCountOverTime(userId),
-      this.getCurrentStreak(userId),
+      this.getSessionCountOverTime(userId, timezone),
+      this.getCurrentStreak(userId, timezone, undefined),
     ]);
 
     return {

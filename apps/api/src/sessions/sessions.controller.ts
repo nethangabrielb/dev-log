@@ -31,13 +31,15 @@ export class SessionsController {
   @Get('streaks')
   getStreaks(@Req() req: any) {
     const userId = req.user.userId;
-    return this.sessionsService.getStreaks(userId);
+    const timezone = req.user.timezone || 'Asia/Manila';
+    return this.sessionsService.getStreaks(userId, timezone);
   }
 
   @Get('statistics')
   getStatistics(@Req() req: any) {
     const userId = req.user.userId;
-    return this.sessionsService.getStatistics(userId);
+    const timezone = req.user.timezone || 'Asia/Manila';
+    return this.sessionsService.getStatistics(userId, timezone);
   }
 
   @Get(':id')

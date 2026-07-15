@@ -19,7 +19,7 @@ export interface TotalTimeSpent {
 }
 
 export interface SessionCountOverTime {
-  _id: string;
+  date: string;
   count: number;
 }
 

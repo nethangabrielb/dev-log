@@ -30,7 +30,8 @@ export class DsaController {
   @Get('statistics')
   getStatistics(@Req() req: any) {
     const userId = req.user.userId;
-    return this.dsaService.getStatistics(userId);
+    const timezone = req.user.timezone || 'Asia/Manila';
+    return this.dsaService.getStatistics(userId, timezone);
   }
 
   @Get(':id')

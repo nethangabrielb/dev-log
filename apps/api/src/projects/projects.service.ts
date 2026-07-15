@@ -91,7 +91,11 @@ export class ProjectsService {
     return (sessions[0] as TasksCompleted) ?? { totalCompleted: 0 };
   }
 
-  async getSessionFrequencyOverTime(projectId: string, userId: string) {
+  async getSessionFrequencyOverTime(
+    projectId: string,
+    userId: string,
+    timezone: string,
+  ) {
     const results = await this.sessionModel.aggregate([
       { $match: { userId, 'linkedTo.id': projectId } },
       {
@@ -100,7 +104,7 @@ export class ProjectsService {
             $dateToString: {
               format: '%Y-%m-%d',
               date: '$startedAt',
-              timezone: 'Asia/Manila',
+              timezone,
             },
           },
           count: { $sum: 1 },
@@ -114,14 +118,14 @@ export class ProjectsService {
     const days = Array.from({ length: 14 }, (_, i) => {
       const d = new Date(today);
       d.setDate(today.getDate() - (13 - i));
-      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+      return d.toLocaleDateString('en-CA', { timeZone: timezone });
     });
 
     const map = Object.fromEntries(results.map((r) => [r._id, r.count]));
     return days.map((date) => ({ date, count: map[date] ?? 0 }));
   }
 
-  async getStats(id: string, userId: string) {
+  async getStats(id: string, userId: string, timezone: string) {
     if (!Types.ObjectId.isValid(id))
       throw new BadRequestException('Invalid ID');
 
@@ -133,7 +137,7 @@ export class ProjectsService {
       await Promise.all([
         this.getTotalTimeLogged(id, userId),
         this.getTasksCompleted(id, userId),
-        this.getSessionFrequencyOverTime(id, userId),
+        this.getSessionFrequencyOverTime(id, userId, timezone),
       ]);
     return {
       totalTimeLogged: totalTimeLogged,
