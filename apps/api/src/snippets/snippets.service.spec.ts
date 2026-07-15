@@ -6,12 +6,17 @@ import { Snippet } from './schemas/snippets.schema';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
 
+const userId = 'user-1';
+const validId = '507f1f77bcf86cd799439011';
+
+const createQueryResult = <T>(value: T) => ({
+  exec: jest.fn().mockResolvedValue(value),
+});
+
 type MockSnippetModel = {
   create: jest.Mock;
   find: jest.Mock;
   findById: jest.Mock;
-  findByIdAndUpdate: jest.Mock;
-  findByIdAndDelete: jest.Mock;
 };
 
 describe('SnippetsService', () => {
@@ -19,6 +24,8 @@ describe('SnippetsService', () => {
   let model: MockSnippetModel;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SnippetsService,
@@ -28,8 +35,6 @@ describe('SnippetsService', () => {
             create: jest.fn(),
             find: jest.fn(),
             findById: jest.fn(),
-            findByIdAndUpdate: jest.fn(),
-            findByIdAndDelete: jest.fn(),
           },
         },
       ],
@@ -55,56 +60,58 @@ describe('SnippetsService', () => {
     const createdSnippet = { id: 'snippet-1', ...createSnippetDto };
     model.create.mockResolvedValue(createdSnippet);
 
-    await expect(service.create(createSnippetDto)).resolves.toEqual(
+    await expect(service.create(createSnippetDto, userId)).resolves.toEqual(
       createdSnippet,
     );
-    expect(model.create).toHaveBeenCalledWith(createSnippetDto);
+    expect(model.create).toHaveBeenCalledWith({ ...createSnippetDto, userId });
   });
 
   it('should return all snippets', async () => {
     const snippets = [{ id: 'snippet-1' }, { id: 'snippet-2' }];
-    model.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(snippets) });
+    model.find.mockReturnValue(createQueryResult(snippets));
 
-    await expect(service.findAll()).resolves.toEqual(snippets);
-    expect(model.find).toHaveBeenCalled();
+    await expect(service.findAll(userId)).resolves.toEqual(snippets);
+    expect(model.find).toHaveBeenCalledWith({ userId });
   });
 
   it('should return a single snippet by id', async () => {
-    const snippet = { id: 'snippet-1' };
-    model.findById.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(snippet),
-    });
+    const snippet = { id: 'snippet-1', userId };
+    model.findById.mockReturnValue(createQueryResult(snippet));
 
-    await expect(service.findOne('snippet-1')).resolves.toEqual(snippet);
-    expect(model.findById).toHaveBeenCalledWith('snippet-1');
+    await expect(service.findOne(validId, userId)).resolves.toEqual(snippet);
+    expect(model.findById).toHaveBeenCalledWith(validId);
   });
 
   it('should update a snippet', async () => {
     const updateSnippetDto: UpdateSnippetDto = {
       description: 'Added description',
     };
-    const updatedSnippet = { id: 'snippet-1', ...updateSnippetDto };
-    model.findByIdAndUpdate.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(updatedSnippet),
-    });
+    const snippet = {
+      id: 'snippet-1',
+      userId,
+      save: jest
+        .fn()
+        .mockResolvedValue({ id: 'snippet-1', ...updateSnippetDto }),
+    };
+    model.findById.mockReturnValue(createQueryResult(snippet));
 
     await expect(
-      service.update('snippet-1', updateSnippetDto),
-    ).resolves.toEqual(updatedSnippet);
-    expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
-      'snippet-1',
-      updateSnippetDto,
-      { new: true },
-    );
+      service.update(validId, updateSnippetDto, userId),
+    ).resolves.toEqual({ id: 'snippet-1', ...updateSnippetDto });
+    expect(snippet.save).toHaveBeenCalled();
   });
 
   it('should remove a snippet', async () => {
-    const removedSnippet = { id: 'snippet-1' };
-    model.findByIdAndDelete.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(removedSnippet),
-    });
+    const snippet = {
+      id: 'snippet-1',
+      userId,
+      deleteOne: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+    };
+    model.findById.mockReturnValue(createQueryResult(snippet));
 
-    await expect(service.remove('snippet-1')).resolves.toEqual(removedSnippet);
-    expect(model.findByIdAndDelete).toHaveBeenCalledWith('snippet-1');
+    await expect(service.remove(validId, userId)).resolves.toEqual({
+      deletedCount: 1,
+    });
+    expect(snippet.deleteOne).toHaveBeenCalled();
   });
 });

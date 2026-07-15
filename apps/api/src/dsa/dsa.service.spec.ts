@@ -6,6 +6,14 @@ import { Dsa } from './schemas/dsa.schema';
 import { CreateDsaDto } from './dto/create-dsa.dto';
 import { UpdateDsaDto } from './dto/update-dsa.dto';
 
+const userId = 'user-1';
+const timezone = 'Asia/Manila';
+const validId = '507f1f77bcf86cd799439011';
+
+const createQueryResult = <T>(value: T) => ({
+  exec: jest.fn().mockResolvedValue(value),
+});
+
 describe('DsaService', () => {
   let service: DsaService;
 
@@ -13,8 +21,8 @@ describe('DsaService', () => {
     create: jest.fn(),
     find: jest.fn(),
     findById: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
+    aggregate: jest.fn(),
+    countDocuments: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -51,54 +59,100 @@ describe('DsaService', () => {
 
     mockDsaModel.create.mockResolvedValue(createdDsa);
 
-    await expect(service.create(createDsaDto)).resolves.toEqual(createdDsa);
-    expect(mockDsaModel.create).toHaveBeenCalledWith(createDsaDto);
+    await expect(service.create(createDsaDto, userId)).resolves.toEqual(
+      createdDsa,
+    );
+    expect(mockDsaModel.create).toHaveBeenCalledWith({
+      ...createDsaDto,
+      userId,
+    });
   });
 
   it('should return all dsa problems', async () => {
     const dsaProblems = [{ id: 'dsa-1' }, { id: 'dsa-2' }];
-    mockDsaModel.find.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(dsaProblems),
-    });
+    mockDsaModel.find.mockReturnValue(createQueryResult(dsaProblems));
 
-    await expect(service.findAll()).resolves.toEqual(dsaProblems);
-    expect(mockDsaModel.find).toHaveBeenCalled();
+    await expect(service.findAll(userId)).resolves.toEqual(dsaProblems);
+    expect(mockDsaModel.find).toHaveBeenCalledWith({ userId });
   });
 
   it('should return a single dsa problem by id', async () => {
-    const dsaProblem = { id: 'dsa-1' };
-    mockDsaModel.findById.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(dsaProblem),
-    });
+    const dsaProblem = { id: 'dsa-1', userId };
+    mockDsaModel.findById.mockReturnValue(createQueryResult(dsaProblem));
 
-    await expect(service.findOne('dsa-1')).resolves.toEqual(dsaProblem);
-    expect(mockDsaModel.findById).toHaveBeenCalledWith('dsa-1');
+    await expect(service.findOne(validId, userId)).resolves.toEqual(dsaProblem);
+    expect(mockDsaModel.findById).toHaveBeenCalledWith(validId);
   });
 
   it('should update a dsa problem by id', async () => {
     const updateDsaDto: UpdateDsaDto = { isSolved: true };
-    const updatedDsa = { id: 'dsa-1', isSolved: true };
-    mockDsaModel.findByIdAndUpdate.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(updatedDsa),
-    });
+    const dsa = {
+      id: 'dsa-1',
+      userId,
+      save: jest.fn().mockResolvedValue({ id: 'dsa-1', isSolved: true }),
+    };
+    mockDsaModel.findById.mockReturnValue(createQueryResult(dsa));
 
-    await expect(service.update('dsa-1', updateDsaDto)).resolves.toEqual(
-      updatedDsa,
-    );
-    expect(mockDsaModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      'dsa-1',
-      updateDsaDto,
-      { new: true },
-    );
+    await expect(
+      service.update(validId, updateDsaDto, userId),
+    ).resolves.toEqual({
+      id: 'dsa-1',
+      isSolved: true,
+    });
+    expect(dsa.save).toHaveBeenCalled();
   });
 
   it('should remove a dsa problem by id', async () => {
-    const removedDsa = { id: 'dsa-1' };
-    mockDsaModel.findByIdAndDelete.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(removedDsa),
+    const dsa = {
+      id: 'dsa-1',
+      userId,
+      deleteOne: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+    };
+    mockDsaModel.findById.mockReturnValue(createQueryResult(dsa));
+
+    await expect(service.remove(validId, userId)).resolves.toEqual({
+      deletedCount: 1,
+    });
+    expect(dsa.deleteOne).toHaveBeenCalled();
+  });
+
+  it('should return dsa statistics', async () => {
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: timezone,
+    });
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = yesterdayDate.toLocaleDateString('en-CA', {
+      timeZone: timezone,
     });
 
-    await expect(service.remove('dsa-1')).resolves.toEqual(removedDsa);
-    expect(mockDsaModel.findByIdAndDelete).toHaveBeenCalledWith('dsa-1');
+    mockDsaModel.countDocuments.mockReturnValue(createQueryResult(4));
+    mockDsaModel.aggregate
+      .mockResolvedValueOnce([{ _id: today }, { _id: yesterday }])
+      .mockResolvedValueOnce([{ _id: today }, { _id: yesterday }])
+      .mockReturnValueOnce(
+        createQueryResult([{ difficulty: Difficulty.EASY, count: 2 }]),
+      )
+      .mockReturnValueOnce(
+        createQueryResult([{ pattern: DsaPattern.TWO_POINTERS, count: 2 }]),
+      )
+      .mockReturnValueOnce(createQueryResult([{ _id: today, count: 3 }]));
+
+    const statistics = await service.getStatistics(userId, timezone);
+
+    expect(statistics.totalProblemsSolved).toBe(4);
+    expect(statistics.currentStreak).toBe(2);
+    expect(statistics.longestStreak).toBe(2);
+    expect(statistics.breakdownByDifficulty).toEqual([
+      { difficulty: Difficulty.EASY, count: 2 },
+    ]);
+    expect(statistics.breakdownByPattern).toEqual([
+      { pattern: DsaPattern.TWO_POINTERS, count: 2 },
+    ]);
+    expect(statistics.problemsSolvedOverTime).toHaveLength(14);
+    expect(statistics.problemsSolvedOverTime).toContainEqual({
+      date: today,
+      count: 3,
+    });
   });
 });

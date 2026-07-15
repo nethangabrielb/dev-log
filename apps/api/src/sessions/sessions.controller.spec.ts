@@ -11,11 +11,19 @@ type MockSessionsService = {
   findOne: jest.Mock;
   update: jest.Mock;
   remove: jest.Mock;
+  getStreaks: jest.Mock;
+  getStatistics: jest.Mock;
 };
 
 describe('SessionsController', () => {
   let controller: SessionsController;
   let service: MockSessionsService;
+  const req = {
+    user: {
+      userId: 'user-1',
+      timezone: 'Asia/Manila',
+    },
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,6 +37,8 @@ describe('SessionsController', () => {
             findOne: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
+            getStreaks: jest.fn(),
+            getStatistics: jest.fn(),
           },
         },
       ],
@@ -55,26 +65,46 @@ describe('SessionsController', () => {
     const createdSession = { id: 'session-1', ...createSessionDto };
     service.create.mockResolvedValue(createdSession);
 
-    await expect(controller.create(createSessionDto)).resolves.toEqual(
+    await expect(controller.create(createSessionDto, req)).resolves.toEqual(
       createdSession,
     );
-    expect(service.create).toHaveBeenCalledWith(createSessionDto);
+    expect(service.create).toHaveBeenCalledWith(createSessionDto, 'user-1');
   });
 
   it('should return all sessions from the service', async () => {
     const sessions = [{ id: 'session-1' }];
     service.findAll.mockResolvedValue(sessions);
 
-    await expect(controller.findAll()).resolves.toEqual(sessions);
-    expect(service.findAll).toHaveBeenCalled();
+    await expect(controller.findAll(req)).resolves.toEqual(sessions);
+    expect(service.findAll).toHaveBeenCalledWith('user-1');
+  });
+
+  it('should return session streaks from the service', async () => {
+    const streaks = [
+      { type: SessionType.PROJECT, currentStreak: 2, longestStreak: 4 },
+    ];
+    service.getStreaks.mockResolvedValue(streaks);
+
+    await expect(controller.getStreaks(req)).resolves.toEqual(streaks);
+    expect(service.getStreaks).toHaveBeenCalledWith('user-1', 'Asia/Manila');
+  });
+
+  it('should return session statistics from the service', async () => {
+    const statistics = { totalSessions: 3 };
+    service.getStatistics.mockResolvedValue(statistics);
+
+    await expect(controller.getStatistics(req)).resolves.toEqual(statistics);
+    expect(service.getStatistics).toHaveBeenCalledWith('user-1', 'Asia/Manila');
   });
 
   it('should return a single session from the service', async () => {
     const session = { id: 'session-1' };
     service.findOne.mockResolvedValue(session);
 
-    await expect(controller.findOne('session-1')).resolves.toEqual(session);
-    expect(service.findOne).toHaveBeenCalledWith('session-1');
+    await expect(controller.findOne(req, 'session-1')).resolves.toEqual(
+      session,
+    );
+    expect(service.findOne).toHaveBeenCalledWith('session-1', 'user-1');
   });
 
   it('should update a session through the service', async () => {
@@ -86,18 +116,22 @@ describe('SessionsController', () => {
     service.update.mockResolvedValue(updatedSession);
 
     await expect(
-      controller.update('session-1', updateSessionDto),
+      controller.update(req, 'session-1', updateSessionDto),
     ).resolves.toEqual(updatedSession);
-    expect(service.update).toHaveBeenCalledWith('session-1', updateSessionDto);
+    expect(service.update).toHaveBeenCalledWith(
+      'session-1',
+      updateSessionDto,
+      'user-1',
+    );
   });
 
   it('should remove a session through the service', async () => {
     const removedSession = { id: 'session-1' };
     service.remove.mockResolvedValue(removedSession);
 
-    await expect(controller.remove('session-1')).resolves.toEqual(
+    await expect(controller.remove(req, 'session-1')).resolves.toEqual(
       removedSession,
     );
-    expect(service.remove).toHaveBeenCalledWith('session-1');
+    expect(service.remove).toHaveBeenCalledWith('session-1', 'user-1');
   });
 });

@@ -16,6 +16,11 @@ type MockSnippetsService = {
 describe('SnippetsController', () => {
   let controller: SnippetsController;
   let service: MockSnippetsService;
+  const req = {
+    user: {
+      userId: 'user-1',
+    },
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,26 +59,28 @@ describe('SnippetsController', () => {
     const createdSnippet = { id: 'snippet-1', ...createSnippetDto };
     service.create.mockResolvedValue(createdSnippet);
 
-    await expect(controller.create(createSnippetDto)).resolves.toEqual(
+    await expect(controller.create(req, createSnippetDto)).resolves.toEqual(
       createdSnippet,
     );
-    expect(service.create).toHaveBeenCalledWith(createSnippetDto);
+    expect(service.create).toHaveBeenCalledWith(createSnippetDto, 'user-1');
   });
 
   it('should return all snippets from the service', async () => {
     const snippets = [{ id: 'snippet-1' }, { id: 'snippet-2' }];
     service.findAll.mockResolvedValue(snippets);
 
-    await expect(controller.findAll()).resolves.toEqual(snippets);
-    expect(service.findAll).toHaveBeenCalled();
+    await expect(controller.findAll(req)).resolves.toEqual(snippets);
+    expect(service.findAll).toHaveBeenCalledWith('user-1');
   });
 
   it('should return a single snippet from the service', async () => {
     const snippet = { id: 'snippet-1' };
     service.findOne.mockResolvedValue(snippet);
 
-    await expect(controller.findOne('snippet-1')).resolves.toEqual(snippet);
-    expect(service.findOne).toHaveBeenCalledWith('snippet-1');
+    await expect(controller.findOne('snippet-1', req)).resolves.toEqual(
+      snippet,
+    );
+    expect(service.findOne).toHaveBeenCalledWith('snippet-1', 'user-1');
   });
 
   it('should update a snippet through the service', async () => {
@@ -84,18 +91,22 @@ describe('SnippetsController', () => {
     service.update.mockResolvedValue(updatedSnippet);
 
     await expect(
-      controller.update('snippet-1', updateSnippetDto),
+      controller.update('snippet-1', updateSnippetDto, req),
     ).resolves.toEqual(updatedSnippet);
-    expect(service.update).toHaveBeenCalledWith('snippet-1', updateSnippetDto);
+    expect(service.update).toHaveBeenCalledWith(
+      'snippet-1',
+      updateSnippetDto,
+      'user-1',
+    );
   });
 
   it('should remove a snippet through the service', async () => {
     const removedSnippet = { id: 'snippet-1' };
     service.remove.mockResolvedValue(removedSnippet);
 
-    await expect(controller.remove('snippet-1')).resolves.toEqual(
+    await expect(controller.remove('snippet-1', req)).resolves.toEqual(
       removedSnippet,
     );
-    expect(service.remove).toHaveBeenCalledWith('snippet-1');
+    expect(service.remove).toHaveBeenCalledWith('snippet-1', 'user-1');
   });
 });
