@@ -89,7 +89,7 @@ export class ArticlesService {
       { $project: { _id: 0, total: 1, read: 1 } },
     ]);
 
-    return result[0] ?? { total: 0, read: 0 };
+    return (result[0] as ReadRatio) ?? { total: 0, read: 0 };
   }
 
   async getReadThisMonth(userId: string) {
@@ -145,7 +145,7 @@ export class ArticlesService {
       },
     ]);
 
-    return timeSpent[0] ?? { totalDuration: 0 };
+    return (timeSpent[0] as TotalTimeSpentReading) ?? { totalDuration: 0 };
   }
 
   async getBreakdownByCategory(userId: string): Promise<BreakdownByCategory[]> {
