@@ -14,6 +14,28 @@ export class DailyReportService {
     private readonly dailyReportModel: Model<DailyReport>,
   ) {}
 
+  async findAll(userId: string) {
+    const dailyReports = await this.dailyReportModel
+      .find({ userId })
+      .sort({ date: -1 })
+      .exec();
+    return dailyReports;
+  }
+
+  async findOne(userId: string, date: string) {
+    const dailyReport = await this.dailyReportModel
+      .findOne({ userId, date })
+      .exec();
+    return dailyReport;
+  }
+
+  async markAsRead(userId: string, date: string) {
+    const dailyReport = await this.dailyReportModel
+      .findOneAndUpdate({ userId, date }, { isRead: true }, { new: true })
+      .exec();
+    return dailyReport;
+  }
+
   private async getUserSesionsForToday(
     userId: string,
     timezone: string,
