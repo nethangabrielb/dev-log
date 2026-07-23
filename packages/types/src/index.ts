@@ -8,3 +8,4 @@ export * from "./interfaces/sessionStatistics.types";
 export * from "./interfaces/dsaStatistics.types";
 export * from "./interfaces/projectStatistics.types";
 export * from "./interfaces/articlesStatistics.types";
+export * from "./interfaces/dashboard.types";
