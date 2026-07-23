@@ -12,11 +12,19 @@ import { UsersModule } from './users/users.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ArticlesModule } from './articles/articles.module';
+import { DailyReportModule } from './daily-report/daily-report.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGODB_URI!),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT!, 10),
+      },
+    }),
     SessionsModule,
     DsaModule,
     SnippetsModule,
@@ -24,6 +32,7 @@ import { ArticlesModule } from './articles/articles.module';
     AuthModule,
     UsersModule,
     ArticlesModule,
+    DailyReportModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],

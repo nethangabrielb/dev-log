@@ -10,5 +10,6 @@ import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
   ],
   controllers: [SessionsController],
   providers: [SessionsService],
+  exports: [SessionsService],
 })
 export class SessionsModule {}
