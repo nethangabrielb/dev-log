@@ -14,6 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ArticlesModule } from './articles/articles.module';
 import { DailyReportModule } from './daily-report/daily-report.module';
 import { BullModule } from '@nestjs/bullmq';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { BullModule } from '@nestjs/bullmq';
     UsersModule,
     ArticlesModule,
     DailyReportModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
