@@ -26,3 +26,6 @@ Thumbs.db
 
 # Turborepo
 .turbo/
+
+apps/web/AGENTS.md
+apps/web/docs/FRONTEND.md
