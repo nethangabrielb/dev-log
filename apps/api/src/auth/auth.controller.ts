@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Post,
+  Get,
   Res,
   HttpCode,
 } from '@nestjs/common';
@@ -55,5 +56,10 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
     return { success: true, message: 'Logged out successfully' };
+  }
+
+  @Get('/profile')
+  getProfile(@Request() req) {
+    return req.user as UserDocument;
   }
 }

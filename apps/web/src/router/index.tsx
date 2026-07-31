@@ -1,4 +1,5 @@
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { AppShell } from "../components/layout/AppShell";
 import { DashboardPage } from "../pages/DashboardPage";
 import { SessionsPage } from "../pages/SessionsPage";
@@ -10,11 +11,6 @@ import { SnippetsPage } from "../pages/SnippetsPage";
 import { DailyReportsPage } from "../pages/DailyReportsPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
-
-// Placeholder for ProtectedRoute until implemented
-function ProtectedRoute() {
-  return <Outlet />;
-}
 
 export function AppRouter() {
   return (
