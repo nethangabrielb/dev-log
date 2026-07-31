@@ -48,50 +48,27 @@ export function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        backgroundColor: "var(--bg-base)",
-        color: "var(--text-primary)",
-      }}
-    >
-      <Card
-        className="w-full max-w-md border"
-        style={{
-          backgroundColor: "var(--bg-surface)",
-          borderColor: "var(--border)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
+      <Card className="w-full max-w-md border border-border bg-card shadow-2xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">
-            Log in to Dev<span style={{ color: "var(--accent)" }}>Log</span>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center text-text-primary">
+            Log in to Dev<span className="text-accent font-semibold">Log</span>
           </CardTitle>
-          <CardDescription
-            className="text-center text-sm"
-            style={{ color: "var(--text-secondary)" }}
-          >
+          <CardDescription className="text-center text-sm text-text-secondary">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div
-                className="p-3 text-sm rounded-md border"
-                style={{
-                  backgroundColor: "rgba(248, 113, 113, 0.1)",
-                  borderColor: "var(--danger)",
-                  color: "var(--danger)",
-                }}
-              >
+              <div className="p-3 text-sm rounded-md border border-danger/30 bg-danger/10 text-danger">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label
                 htmlFor="email"
-                className="text-sm font-medium leading-none"
-                style={{ color: "var(--text-primary)" }}
+                className="text-sm font-medium leading-none text-text-primary"
               >
                 Email
               </label>
@@ -100,24 +77,18 @@ export function LoginPage() {
                 type="email"
                 placeholder="name@example.com"
                 {...register("email")}
-                className="border"
-                style={{
-                  backgroundColor: "var(--bg-elevated)",
-                  borderColor: "var(--border)",
-                  color: "var(--text-primary)",
-                }}
+                className="bg-bg-elevated border-border text-text-primary placeholder:text-text-muted focus-visible:ring-accent"
               />
               {errors.email && (
-                <p className="text-xs" style={{ color: "var(--danger)" }}>
+                <p className="text-xs text-danger">
                   {errors.email.message}
                 </p>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label
                 htmlFor="password"
-                className="text-sm font-medium leading-none"
-                style={{ color: "var(--text-primary)" }}
+                className="text-sm font-medium leading-none text-text-primary"
               >
                 Password
               </label>
@@ -126,15 +97,10 @@ export function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 {...register("password")}
-                className="border"
-                style={{
-                  backgroundColor: "var(--bg-elevated)",
-                  borderColor: "var(--border)",
-                  color: "var(--text-primary)",
-                }}
+                className="bg-bg-elevated border-border text-text-primary placeholder:text-text-muted focus-visible:ring-accent"
               />
               {errors.password && (
-                <p className="text-xs" style={{ color: "var(--danger)" }}>
+                <p className="text-xs text-danger">
                   {errors.password.message}
                 </p>
               )}
@@ -142,26 +108,18 @@ export function LoginPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-medium"
-              style={{
-                backgroundColor: "var(--accent)",
-                color: "var(--accent-fg)",
-              }}
+              className="w-full font-medium bg-accent text-accent-fg hover:bg-accent/90 cursor-pointer"
             >
               {isSubmitting ? "Logging in..." : "Log in"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter
-          className="flex justify-center border-t py-4"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+        <CardFooter className="flex justify-center border-t border-border py-4 bg-bg-surface rounded-b-xl">
+          <p className="text-sm text-text-secondary">
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-medium hover:underline"
-              style={{ color: "var(--accent)" }}
+              className="font-medium text-accent hover:underline"
             >
               Register
             </Link>

@@ -21,22 +21,10 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside
-      className="fixed left-0 top-0 bottom-0 w-56 border-r flex flex-col z-30"
-      style={{
-        backgroundColor: "var(--bg-surface)",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div
-        className="h-14 flex items-center px-6 border-b"
-        style={{ borderColor: "var(--border)" }}
-      >
-        <span
-          className="font-semibold text-lg tracking-tight"
-          style={{ color: "var(--text-primary)" }}
-        >
-          Dev<span style={{ color: "var(--accent)" }}>Log</span>
+    <aside className="fixed left-0 top-0 bottom-0 w-56 border-r border-border bg-bg-surface flex flex-col z-30">
+      <div className="h-14 flex items-center px-6 border-b border-border">
+        <span className="font-semibold text-lg tracking-tight text-text-primary">
+          Dev<span className="text-accent font-bold">Log</span>
         </span>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -50,8 +38,8 @@ export function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive
-                    ? "bg-[var(--bg-elevated)] text-[var(--accent)] font-semibold"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                    ? "bg-bg-elevated text-accent font-semibold"
+                    : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
                 }`
               }
             >
