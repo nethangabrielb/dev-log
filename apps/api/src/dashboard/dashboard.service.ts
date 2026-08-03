@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { startOfWeek, endOfWeek } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { Session } from '../sessions/schemas/sessions.schema';
 import { Project } from '../projects/schemas/project.schema';
 import { Article } from '../articles/schema/articles.schema';
@@ -19,16 +21,14 @@ export class DashboardService {
     @InjectModel(Article.name) private readonly articleModel: Model<Article>,
   ) {}
 
-  private getWeekBoundaries() {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    today.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
-    const startOfWeek = new Date(today);
-    startOfWeek.setHours(0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    return { startOfWeek, endOfWeek };
+  private getWeekBoundaries(timezone: string) {
+    const zonedNow = toZonedTime(new Date(), timezone);
+    const startWall = startOfWeek(zonedNow, { weekStartsOn: 1 });
+    const endWall = endOfWeek(zonedNow, { weekStartsOn: 1 });
+    return {
+      startOfWeek: fromZonedTime(startWall, timezone),
+      endOfWeek: fromZonedTime(endWall, timezone),
+    };
   }
 
   private async getTodaysSessions(
@@ -84,8 +84,11 @@ export class DashboardService {
     );
   }
 
-  private async getTopSessionTypes(userId: string): Promise<TopSessions[]> {
-    const { startOfWeek, endOfWeek } = this.getWeekBoundaries();
+  private async getTopSessionTypes(
+    userId: string,
+    timezone: string,
+  ): Promise<TopSessions[]> {
+    const { startOfWeek, endOfWeek } = this.getWeekBoundaries(timezone);
 
     const topSessionTypes = await this.sessionModel.aggregate([
       {
@@ -169,8 +172,8 @@ export class DashboardService {
       .filter((s) => s.currentStreak > 0);
   }
 
-  private async getWeeklyBreakdown(userId: string) {
-    const { startOfWeek, endOfWeek } = this.getWeekBoundaries();
+  private async getWeeklyBreakdown(userId: string, timezone: string) {
+    const { startOfWeek, endOfWeek } = this.getWeekBoundaries(timezone);
 
     return this.sessionModel.aggregate([
       {
@@ -236,9 +239,9 @@ export class DashboardService {
       readingBacklog,
     ] = await Promise.all([
       this.getTodaysSessions(userId, timezone),
-      this.getTopSessionTypes(userId),
+      this.getTopSessionTypes(userId, timezone),
       this.getActiveStreaks(userId, timezone),
-      this.getWeeklyBreakdown(userId),
+      this.getWeeklyBreakdown(userId, timezone),
       this.getActiveProjects(userId),
       this.getReadingBacklog(userId),
     ]);
