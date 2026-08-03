@@ -4,6 +4,7 @@ export * from "./enums/snippets.enum.js";
 export * from "./enums/projects.enum.js";
 export * from "./enums/articles.enum.js";
 
+export * from "./interfaces/session.types.js";
 export * from "./interfaces/sessionStatistics.types.js";
 export * from "./interfaces/dsaStatistics.types.js";
 export * from "./interfaces/projectStatistics.types.js";

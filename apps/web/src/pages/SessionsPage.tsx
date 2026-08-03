@@ -13,7 +13,11 @@ export function SessionsPage() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const { data: rawSessions, isLoading, isError, error } = useSessions(filters);
+  const { data: rawSessions, isLoading, isError, error } = useSessions({
+    type: filters.type || undefined,
+    startDate: filters.startDate || undefined,
+    endDate: filters.endDate || undefined,
+  });
   const { mutate: deleteSession } = useDeleteSession();
 
   const sessions = Array.isArray(rawSessions)

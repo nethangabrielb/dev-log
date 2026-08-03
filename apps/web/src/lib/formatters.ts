@@ -3,8 +3,8 @@ import { SessionType } from "@devlog/types";
 export const SESSION_TYPE_COLOR: Record<SessionType, string> = {
   [SessionType.PROJECT]: "var(--devlog-accent)",
   [SessionType.DSA]: "#4ade80",
-  [SessionType.STUDY]: "#60a5fa",
-  [SessionType.ARTICLE]: "#fbbf24",
+  [SessionType.STUDY]: "#5b9bd9",
+  [SessionType.ARTICLE]: "#f4c542",
   [SessionType.OTHER]: "var(--devlog-text-muted)",
 };
 

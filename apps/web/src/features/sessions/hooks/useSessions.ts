@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { SessionFilters } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { keys } from "@/lib/queryKeys";
 
-export function useSessions(filters?: Record<string, any>) {
+export function useSessions(filters?: SessionFilters) {
   return useQuery({
     queryKey: keys.sessions.all(filters),
     queryFn: () => sessionsApi.findAll(filters),
