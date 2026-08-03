@@ -6,6 +6,8 @@ import {
   type SessionData,
 } from "../features/sessions/components/SessionCard";
 import { StartSessionDialog } from "../features/sessions/components/StartSessionDialog";
+import { ActiveTimerCard } from "../features/sessions/components/ActiveTimerCard";
+import { useActiveSession } from "../features/sessions/context/ActiveSessionContext";
 import { FilterBar, type FilterValues } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorBoundary } from "../components/common/ErrorBoundary";
@@ -21,6 +23,7 @@ interface SessionListResponse {
 export function SessionsPage() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { activeSession } = useActiveSession();
 
   const { data: rawSessions, isLoading, isError, error } = useSessions({
     type: filters.type || undefined,
@@ -56,17 +59,23 @@ export function SessionsPage() {
               Track your coding, study, and project sessions
             </p>
           </div>
-          <Button
-            onClick={() => setIsFormOpen(true)}
-            className="gap-2 bg-accent text-accent-fg hover:bg-accent-dim"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Start Session</span>
-          </Button>
+          {!activeSession && (
+            <Button
+              onClick={() => setIsFormOpen(true)}
+              className="gap-2 bg-accent text-accent-fg hover:bg-accent-dim"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Start Session</span>
+            </Button>
+          )}
         </div>
 
-        {/* Filter Bar */}
-        <FilterBar filters={filters} onChange={setFilters} />
+        {/* Active Session Timer / Filter Bar */}
+        {activeSession ? (
+          <ActiveTimerCard />
+        ) : (
+          <FilterBar filters={filters} onChange={setFilters} />
+        )}
 
         {/* API Fetch Error State */}
         {isError && (
@@ -108,13 +117,15 @@ export function SessionsPage() {
               title="No sessions found"
               description="Log your first session or adjust your active filters to view existing entries."
               action={
-                <Button
-                  onClick={() => setIsFormOpen(true)}
-                  className="gap-1.5 bg-accent text-accent-fg hover:bg-accent-dim"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>Log Session</span>
-                </Button>
+                !activeSession && (
+                  <Button
+                    onClick={() => setIsFormOpen(true)}
+                    className="gap-1.5 bg-accent text-accent-fg hover:bg-accent-dim"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Log Session</span>
+                  </Button>
+                )
               }
             />
           ) : (
