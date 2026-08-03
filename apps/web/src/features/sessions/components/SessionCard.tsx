@@ -7,6 +7,7 @@ import {
 } from "@/lib/formatters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface SessionData {
   _id?: string;
@@ -36,8 +37,8 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
   const todos = session.todos ?? [];
 
   return (
-    <Card className="group border rounded-lg transition-all">
-      <CardContent className="p-4 space-y-3">
+    <Card className="group transition-all">
+      <CardContent className="space-y-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <span
@@ -52,10 +53,7 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
               {session.type}
             </span>
             {projectName && (
-              <div
-                className="flex items-center gap-1.5 text-xs min-w-0"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
+              <div className="flex items-center gap-1.5 text-xs min-w-0 text-muted-foreground">
                 <Folder className="h-3 w-3 shrink-0" />
                 <span className="truncate">{projectName}</span>
               </div>
@@ -87,8 +85,7 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => onDelete(sessionId)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded"
-                style={{ color: "var(--devlog-danger)" }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-danger"
                 title="Delete session"
               >
                 <Trash2 className="h-4 w-4" />
@@ -99,36 +96,31 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
 
         {todos.length > 0 && (
           <ul
-            className="border-t pt-3 space-y-1.5"
-            style={{ borderColor: "var(--devlog-border-subtle)" }}
+            className="border-t pt-3 space-y-1.5 border-border-subtle"
           >
             {todos.map((todo, idx) => (
               <li
                 key={idx}
                 className="flex items-center gap-2 text-xs font-mono"
-                style={{ fontFamily: "var(--font-mono)" }}
               >
                 {todo.completed ? (
                   <CheckSquare
-                    className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--devlog-success)" }}
+                    className="h-3.5 w-3.5 shrink-0 text-success"
                     aria-hidden="true"
                   />
                 ) : (
                   <Square
-                    className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--devlog-border)" }}
+                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
                 )}
                 <span
-                  className="truncate"
-                  style={{
-                    color: todo.completed
-                      ? "var(--devlog-text-muted)"
-                      : "var(--devlog-text-secondary)",
-                    textDecoration: todo.completed ? "line-through" : "none",
-                  }}
+                  className={cn(
+                    "truncate",
+                    todo.completed
+                      ? "text-muted-foreground line-through"
+                      : "text-muted-foreground"
+                  )}
                 >
                   {todo.name}
                 </span>

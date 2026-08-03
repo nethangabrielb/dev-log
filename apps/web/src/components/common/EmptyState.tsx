@@ -14,37 +14,15 @@ export function EmptyState({
   action,
 }: EmptyStateProps) {
   return (
-    <div
-      className="flex flex-col items-center justify-center px-8 py-16 text-center rounded-xl border border-dashed"
-      style={{
-        backgroundColor: "var(--devlog-bg-surface)",
-        borderColor: "var(--devlog-border)",
-        color: "var(--devlog-text-primary)",
-      }}
-    >
-      <div
-        className="p-3 rounded-full border mb-3"
-        style={{
-          backgroundColor: "var(--devlog-bg-elevated)",
-          borderColor: "var(--devlog-border)",
-        }}
-      >
-        <Icon
-          className="h-6 w-6"
-          style={{ color: "var(--devlog-text-muted)" }}
-        />
+    <div className="flex flex-col items-center justify-center px-8 py-16 text-center rounded-xl border border-dashed border-border bg-bg-surface text-foreground">
+      <div className="p-3 rounded-full border border-border bg-bg-elevated mb-3">
+        <Icon className="h-6 w-6 text-text-muted" />
       </div>
-      <h3
-        className="text-base font-semibold tracking-tight mb-1"
-        style={{ color: "var(--devlog-text-primary)" }}
-      >
+      <h3 className="text-base font-semibold tracking-tight mb-1 text-foreground">
         {title}
       </h3>
       {description && (
-        <p
-          className="text-sm max-w-sm mb-4"
-          style={{ color: "var(--devlog-text-secondary)" }}
-        >
+        <p className="text-sm max-w-sm mb-4 text-muted-foreground">
           {description}
         </p>
       )}

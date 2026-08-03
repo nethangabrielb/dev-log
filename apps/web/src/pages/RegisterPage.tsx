@@ -17,6 +17,7 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { getApiErrorMessage } from "../lib/apiError";
 import {
   Select,
   SelectTrigger,
@@ -62,55 +63,29 @@ export function RegisterPage() {
     try {
       await authApi.register(data);
       navigate("/login");
-    } catch (err: any) {
+    } catch (err) {
       setError(
-        err?.response?.data?.message ||
-          "Registration failed. Please try again."
+        getApiErrorMessage(err, "Registration failed. Please try again.")
       );
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        backgroundColor: "var(--devlog-bg-base)",
-        color: "var(--devlog-text-primary)",
-      }}
-    >
-      <Card
-        className="w-full max-w-md border rounded-xl"
-        style={{
-          backgroundColor: "var(--devlog-bg-surface)",
-          borderColor: "var(--devlog-border)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle
-            className="text-2xl font-bold tracking-tight text-center"
-            style={{ color: "var(--devlog-text-primary)" }}
-          >
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">
             Create your account
           </CardTitle>
-          <CardDescription
-            className="text-center text-sm"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
+          <CardDescription className="text-center">
             Enter your details to register for Dev
-            <span style={{ color: "var(--devlog-accent)" }}>Log</span>
+            <span className="text-accent">Log</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div
-                className="p-3 text-sm rounded-md border"
-                style={{
-                  backgroundColor: "rgba(248, 113, 113, 0.1)",
-                  borderColor: "var(--devlog-danger)",
-                  color: "var(--devlog-danger)",
-                }}
-              >
+              <div className="p-3 text-sm rounded-md border border-destructive/40 bg-destructive/10 text-destructive">
                 {error}
               </div>
             )}
@@ -119,7 +94,6 @@ export function RegisterPage() {
               <label
                 htmlFor="username"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Username
               </label>
@@ -130,7 +104,7 @@ export function RegisterPage() {
                 {...register("username")}
               />
               {errors.username && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p className="text-xs text-destructive">
                   {errors.username.message}
                 </p>
               )}
@@ -140,7 +114,6 @@ export function RegisterPage() {
               <label
                 htmlFor="email"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Email
               </label>
@@ -151,7 +124,7 @@ export function RegisterPage() {
                 {...register("email")}
               />
               {errors.email && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p className="text-xs text-destructive">
                   {errors.email.message}
                 </p>
               )}
@@ -161,7 +134,6 @@ export function RegisterPage() {
               <label
                 htmlFor="password"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Password
               </label>
@@ -172,7 +144,7 @@ export function RegisterPage() {
                 {...register("password")}
               />
               {errors.password && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p className="text-xs text-destructive">
                   {errors.password.message}
                 </p>
               )}
@@ -182,7 +154,6 @@ export function RegisterPage() {
               <label
                 htmlFor="timezone"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Timezone
               </label>
@@ -191,7 +162,7 @@ export function RegisterPage() {
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
                     <SelectContent>
@@ -205,7 +176,7 @@ export function RegisterPage() {
                 )}
               />
               {errors.timezone && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p className="text-xs text-destructive">
                   {errors.timezone.message}
                 </p>
               )}
@@ -214,37 +185,18 @@ export function RegisterPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-medium transition-colors cursor-pointer border-0 shadow-none"
-              style={{
-                backgroundColor: "var(--devlog-accent)",
-                color: "var(--devlog-accent-fg)",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--devlog-accent-dim)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--devlog-accent)")
-              }
+              className="w-full bg-accent text-accent-fg hover:bg-accent-dim"
             >
               {isSubmitting ? "Creating account..." : "Register"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter
-          className="flex justify-center border-t py-4 rounded-b-xl"
-          style={{
-            backgroundColor: "var(--devlog-bg-surface)",
-            borderColor: "var(--devlog-border)",
-          }}
-        >
-          <p className="text-sm" style={{ color: "var(--devlog-text-secondary)" }}>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-medium hover:underline"
-              style={{ color: "var(--devlog-accent)" }}
+              className="font-medium hover:underline text-accent"
             >
               Log in
             </Link>

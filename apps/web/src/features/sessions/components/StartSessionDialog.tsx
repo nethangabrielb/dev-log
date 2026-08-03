@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, useWatch, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { LinkedToKind, SessionType, type SessionTodo } from "@devlog/types";
@@ -12,10 +12,10 @@ import { projectsApi } from "@/api/projects.api";
 import { keys } from "@/lib/queryKeys";
 import {
   Dialog,
+  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +73,9 @@ export function StartSessionDialog({
     name: "todos",
   });
 
+  const type = useWatch({ control, name: "type" });
+
+
   useEffect(() => {
     if (open) {
       reset({
@@ -114,144 +117,132 @@ export function StartSessionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogClose onClick={() => handleOpenChange(false)} />
-      <DialogHeader>
-        <DialogTitle>Start Session</DialogTitle>
-        <DialogDescription>
-          Kick off a tracked work, study, or coding session
-        </DialogDescription>
-      </DialogHeader>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Start Session</DialogTitle>
+          <DialogDescription>
+            Kick off a tracked work, study, or coding session
+          </DialogDescription>
+        </DialogHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1 text-left">
-          <label
-            className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
-            Type
-          </label>
-          <Controller
-            name="type"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Type
+            </label>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v);
+                    setProjectId("");
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessionTypes.map((st) => (
+                      <SelectItem key={st} value={st}>
+                        {st}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.type && (
+              <p className="text-xs text-destructive">
+                {errors.type.message}
+              </p>
+            )}
+          </div>
+
+          {type === SessionType.PROJECT && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Linked Project (Optional)
+              </label>
+              <Select
+                value={projectId}
+                onValueChange={(v) => setProjectId(v ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sessionTypes.map((st) => (
-                    <SelectItem key={st} value={st}>
-                      {st}
+                  <SelectItem value="">None</SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p._id || p.id} value={p._id || p.id}>
+                      {p.name || p.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
-          />
-          {errors.type && (
-            <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
-              {errors.type.message}
-            </p>
+            </div>
           )}
-        </div>
 
-        <div className="space-y-1 text-left">
-          <label
-            className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
-            Linked Project (Optional)
-          </label>
-          <Select value={projectId} onValueChange={(v) => setProjectId(v ?? "")}>
-            <SelectTrigger>
-              <SelectValue placeholder="None" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">None</SelectItem>
-              {projects.map((p) => (
-                <SelectItem key={p._id || p.id} value={p._id || p.id}>
-                  {p.name || p.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Todos (Optional)
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={todoInput}
+                onChange={(e) => setTodoInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTodo();
+                  }
+                }}
+                placeholder="Add a task..."
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddTodo}
+                className="shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            {fields.length > 0 && (
+              <ul className="space-y-1.5 pt-2">
+                {fields.map((field, index) => (
+                  <li
+                    key={field.id}
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                  >
+                    <span className="flex-1 truncate">{field.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="cursor-pointer rounded-sm p-0.5 text-destructive transition-colors hover:bg-muted"
+                      title="Remove todo"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        <div className="space-y-1 text-left">
-          <label
-            className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
-            Todos (Optional)
-          </label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={todoInput}
-              onChange={(e) => setTodoInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTodo();
-                }
-              }}
-              placeholder="Add a task..."
-            />
+          <div className="pt-2">
             <Button
-              type="button"
-              onClick={handleAddTodo}
-              className="h-9 shrink-0 cursor-pointer gap-1 border-0 shadow-none"
-              style={{
-                backgroundColor: "var(--devlog-bg-elevated)",
-                color: "var(--devlog-text-primary)",
-              }}
+              type="submit"
+              className="w-full bg-accent text-accent-fg hover:bg-accent-dim"
             >
-              <Plus className="h-4 w-4" />
-              Add
+              Start Session
             </Button>
           </div>
-          {fields.length > 0 && (
-            <ul className="space-y-1.5 pt-2">
-              {fields.map((field, index) => (
-                <li
-                  key={field.id}
-                  className="flex items-center gap-2 text-sm"
-                  style={{ color: "var(--devlog-text-secondary)" }}
-                >
-                  <span className="flex-1 truncate">{field.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="cursor-pointer rounded-sm p-0.5 transition-colors hover:bg-[var(--devlog-bg-hover)]"
-                    style={{ color: "var(--devlog-danger)" }}
-                    title="Remove todo"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="pt-4">
-          <Button
-            type="submit"
-            className="w-full font-medium transition-colors cursor-pointer border-0 shadow-none"
-            style={{
-              backgroundColor: "var(--devlog-accent)",
-              color: "var(--devlog-accent-fg)",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--devlog-accent-dim)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--devlog-accent)")
-            }
-          >
-            Start Session
-          </Button>
-        </div>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }

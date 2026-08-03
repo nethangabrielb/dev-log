@@ -46,20 +46,13 @@ export class ErrorBoundary extends Component<Props, State> {
           <h3 className="text-base font-semibold mb-1">
             Something went wrong
           </h3>
-          <p
-            className="text-sm max-w-md mb-4"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
+          <p className="text-sm max-w-md mb-4 text-muted-foreground">
             {this.state.error?.message ||
               "An unexpected error occurred while rendering this page."}
           </p>
           <Button
             onClick={() => this.setState({ hasError: false, error: undefined })}
-            className="text-xs font-medium cursor-pointer"
-            style={{
-              backgroundColor: "var(--devlog-accent)",
-              color: "var(--devlog-accent-fg)",
-            }}
+            className="bg-accent text-accent-fg hover:bg-accent-dim"
           >
             Try Again
           </Button>

@@ -137,14 +137,14 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           type="date"
           value={startDate}
           onChange={(e) => handleStartDateChange(e.target.value)}
-          className="h-8 w-36 text-xs"
+          className="w-36 text-xs"
         />
         <span style={{ color: "var(--devlog-text-muted)" }}>to</span>
         <Input
           type="date"
           value={endDate}
           onChange={(e) => handleEndDateChange(e.target.value)}
-          className="h-8 w-36 text-xs"
+          className="w-36 text-xs"
         />
         {(selectedType || startDate || endDate) && (
           <button

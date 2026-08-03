@@ -15,7 +15,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetClose,
+  SheetContent,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,24 @@ import {
 export interface SessionFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface ProjectOption {
+  _id?: string;
+  id?: string;
+  name?: string;
+  title?: string;
+}
+
+interface CreateSessionPayload {
+  title: string;
+  sessionType: SessionType;
+  durationInSeconds: number;
+  notes?: string;
+  linkedTo?: {
+    kind: LinkedToKind;
+    id: string;
+  };
 }
 
 export function SessionFormSheet({ open, onOpenChange }: SessionFormSheetProps) {
@@ -63,7 +82,7 @@ export function SessionFormSheet({ open, onOpenChange }: SessionFormSheetProps) 
   const onSubmit = (data: CreateSessionInput) => {
     setError(null);
     const durationInSeconds = data.durationInMinutes * 60;
-    const payload: any = {
+    const payload: CreateSessionPayload = {
       title: data.title,
       sessionType: data.sessionType,
       durationInSeconds,
@@ -82,9 +101,13 @@ export function SessionFormSheet({ open, onOpenChange }: SessionFormSheetProps) 
         reset();
         onOpenChange(false);
       },
-      onError: (err: any) => {
+      onError: (error: unknown) => {
+        const responseError = error as {
+          response?: { data?: { message?: string } };
+        };
         setError(
-          err?.response?.data?.message || "Failed to log session. Try again."
+          responseError?.response?.data?.message ||
+            "Failed to log session. Try again."
         );
       },
     });
@@ -94,173 +117,152 @@ export function SessionFormSheet({ open, onOpenChange }: SessionFormSheetProps) 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetClose onClick={() => onOpenChange(false)} />
-      <div className="flex flex-col h-full justify-between">
-        <div>
-          <SheetHeader>
-            <SheetTitle>Log New Session</SheetTitle>
-            <SheetDescription>
-              Record a work, study, or coding session into your log
-            </SheetDescription>
-          </SheetHeader>
+      <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Log New Session</SheetTitle>
+          <SheetDescription>
+            Record a work, study, or coding session into your log
+          </SheetDescription>
+        </SheetHeader>
 
-          {error && (
-            <div
-              className="p-3 mb-4 text-sm rounded-md border"
-              style={{
-                backgroundColor: "rgba(248, 113, 113, 0.1)",
-                borderColor: "var(--devlog-danger)",
-                color: "var(--devlog-danger)",
-              }}
+        {error && (
+          <div className="p-3 text-sm rounded-md border border-destructive/40 bg-destructive/10 text-destructive">
+            {error}
+          </div>
+        )}
+
+        <form
+          id="session-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 px-4"
+        >
+          <div className="space-y-1.5">
+            <label
+              htmlFor="sessionType"
+              className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
             >
-              {error}
-            </div>
-          )}
-
-          <form id="session-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1 text-left">
-              <label
-                htmlFor="sessionType"
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
-                Type
-              </label>
-              <Controller
-                name="sessionType"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sessionTypes.map((st) => (
-                        <SelectItem key={st} value={st}>
-                          {st}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.sessionType && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
-                  {errors.sessionType.message}
-                </p>
+              Type
+            </label>
+            <Controller
+              name="sessionType"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessionTypes.map((st) => (
+                      <SelectItem key={st} value={st}>
+                        {st}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </div>
+            />
+            {errors.sessionType && (
+              <p className="text-xs text-destructive">
+                {errors.sessionType.message}
+              </p>
+            )}
+          </div>
 
-            <div className="space-y-1 text-left">
-              <label
-                htmlFor="title"
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
-                Title
-              </label>
-              <Input
-                id="title"
-                placeholder="e.g. Implemented Auth Interceptors"
-                {...register("title")}
-              />
-              {errors.title && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
-                  {errors.title.message}
-                </p>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="title"
+              className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              Title
+            </label>
+            <Input
+              id="title"
+              placeholder="e.g. Implemented Auth Interceptors"
+              {...register("title")}
+            />
+            {errors.title && (
+              <p className="text-xs text-destructive">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="durationInMinutes"
+              className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              Duration (minutes)
+            </label>
+            <Input
+              id="durationInMinutes"
+              type="number"
+              min={1}
+              placeholder="30"
+              {...register("durationInMinutes", { valueAsNumber: true })}
+            />
+            {errors.durationInMinutes && (
+              <p className="text-xs text-destructive">
+                {errors.durationInMinutes.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="projectId"
+              className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              Linked Project (Optional)
+            </label>
+            <Controller
+              name="projectId"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {projects.map((p: ProjectOption) => (
+                      <SelectItem key={p._id || p.id} value={p._id || p.id}>
+                        {p.name || p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </div>
+            />
+          </div>
 
-            <div className="space-y-1 text-left">
-              <label
-                htmlFor="durationInMinutes"
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
-                Duration (minutes)
-              </label>
-              <Input
-                id="durationInMinutes"
-                type="number"
-                min={1}
-                placeholder="30"
-                {...register("durationInMinutes", { valueAsNumber: true })}
-              />
-              {errors.durationInMinutes && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
-                  {errors.durationInMinutes.message}
-                </p>
-              )}
-            </div>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="notes"
+              className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              Notes (Optional)
+            </label>
+            <Textarea
+              id="notes"
+              rows={3}
+              placeholder="Key takeaways, learnings, or summary..."
+              {...register("notes")}
+            />
+          </div>
+        </form>
 
-            <div className="space-y-1 text-left">
-              <label
-                htmlFor="projectId"
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
-                Linked Project (Optional)
-              </label>
-              <Controller
-                name="projectId"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value || ""} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {projects.map((p: any) => (
-                        <SelectItem key={p._id || p.id} value={p._id || p.id}>
-                          {p.name || p.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-
-            <div className="space-y-1 text-left">
-              <label
-                htmlFor="notes"
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "var(--devlog-text-secondary)" }}
-              >
-                Notes (Optional)
-              </label>
-              <Textarea
-                id="notes"
-                rows={3}
-                placeholder="Key takeaways, learnings, or summary..."
-                {...register("notes")}
-              />
-            </div>
-          </form>
-        </div>
-
-        <div className="pt-4 mt-6 border-t" style={{ borderColor: "var(--devlog-border)" }}>
+        <SheetFooter>
           <Button
             type="submit"
             form="session-form"
             disabled={isPending}
-            className="w-full font-medium transition-colors cursor-pointer border-0 shadow-none"
-            style={{
-              backgroundColor: "var(--devlog-accent)",
-              color: "var(--devlog-accent-fg)",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--devlog-accent-dim)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--devlog-accent)")
-            }
+            className="w-full bg-accent text-accent-fg hover:bg-accent-dim"
           >
             {isPending ? "Logging Session..." : "Save Session"}
           </Button>
-        </div>
-      </div>
+        </SheetFooter>
+      </SheetContent>
     </Sheet>
   );
 }

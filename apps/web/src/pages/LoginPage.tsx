@@ -19,6 +19,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { keys } from "../lib/queryKeys";
+import { getApiErrorMessage } from "../lib/apiError";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -39,59 +40,27 @@ export function LoginPage() {
       await authApi.login(data);
       await queryClient.invalidateQueries({ queryKey: keys.auth.profile() });
       navigate("/");
-    } catch (err: any) {
-      const serverMessage = err?.response?.data?.message;
-      const displayMsg =
-        Array.isArray(serverMessage)
-          ? serverMessage[0]
-          : serverMessage && serverMessage !== "Unauthorized"
-          ? serverMessage
-          : "Invalid credentials. Please try again.";
-      setError(displayMsg);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Invalid credentials. Please try again."));
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        backgroundColor: "var(--devlog-bg-base)",
-        color: "var(--devlog-text-primary)",
-      }}
-    >
-      <Card
-        className="w-full max-w-md border rounded-xl"
-        style={{
-          backgroundColor: "var(--devlog-bg-surface)",
-          borderColor: "var(--devlog-border)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle
-            className="text-2xl font-bold tracking-tight text-center"
-            style={{ color: "var(--devlog-text-primary)" }}
-          >
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">
             Log in to Dev
-            <span style={{ color: "var(--devlog-accent)" }}>Log</span>
+            <span className="text-accent">Log</span>
           </CardTitle>
-          <CardDescription
-            className="text-center text-sm"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
+          <CardDescription className="text-center">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div
-                className="p-3 text-sm rounded-md border"
-                style={{
-                  backgroundColor: "rgba(248, 113, 113, 0.1)",
-                  borderColor: "var(--devlog-danger)",
-                  color: "var(--devlog-danger)",
-                }}
-              >
+              <div className="p-3 text-sm rounded-md border border-destructive/40 bg-destructive/10 text-destructive">
                 {error}
               </div>
             )}
@@ -99,7 +68,6 @@ export function LoginPage() {
               <label
                 htmlFor="email"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Email
               </label>
@@ -110,10 +78,7 @@ export function LoginPage() {
                 {...register("email")}
               />
               {errors.email && (
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--devlog-danger)" }}
-                >
+                <p className="text-xs text-destructive">
                   {errors.email.message}
                 </p>
               )}
@@ -122,7 +87,6 @@ export function LoginPage() {
               <label
                 htmlFor="password"
                 className="text-sm font-medium leading-none"
-                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Password
               </label>
@@ -133,10 +97,7 @@ export function LoginPage() {
                 {...register("password")}
               />
               {errors.password && (
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--devlog-danger)" }}
-                >
+                <p className="text-xs text-destructive">
                   {errors.password.message}
                 </p>
               )}
@@ -144,39 +105,18 @@ export function LoginPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-medium transition-colors cursor-pointer border-0 shadow-none"
-              style={{
-                backgroundColor: "var(--devlog-accent)",
-                color: "var(--devlog-accent-fg)",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--devlog-accent-dim)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--devlog-accent)")
-              }
+              className="w-full bg-accent text-accent-fg hover:bg-accent-dim"
             >
               {isSubmitting ? "Logging in..." : "Log in"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter
-          className="flex justify-center border-t py-4 rounded-b-xl"
-          style={{
-            backgroundColor: "var(--devlog-bg-surface)",
-            borderColor: "var(--devlog-border)",
-          }}
-        >
-          <p
-            className="text-sm"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-medium hover:underline"
-              style={{ color: "var(--devlog-accent)" }}
+              className="font-medium hover:underline text-accent"
             >
               Register
             </Link>

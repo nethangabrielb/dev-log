@@ -172,17 +172,14 @@ export function ActiveTimerCard() {
               }
             }}
             placeholder="Add a task..."
-            className="h-8 text-xs"
+            className="text-xs"
           />
           <Button
             type="button"
+            variant="outline"
             size="icon"
             onClick={handleAddTodo}
-            className="h-8 w-8 shrink-0 cursor-pointer border-0 shadow-none"
-            style={{
-              backgroundColor: "var(--devlog-bg-elevated)",
-              color: "var(--devlog-text-primary)",
-            }}
+            className="shrink-0"
             title="Add todo"
           >
             <Plus className="h-4 w-4" />
@@ -195,17 +192,7 @@ export function ActiveTimerCard() {
           type="button"
           onClick={handleStop}
           disabled={isSaving}
-          className="flex-1 cursor-pointer gap-1.5 border-0 shadow-none"
-          style={{
-            backgroundColor: "var(--devlog-accent)",
-            color: "var(--devlog-accent-fg)",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--devlog-accent-dim)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--devlog-accent)")
-          }
+          className="flex-1 bg-accent text-accent-fg hover:bg-accent-dim"
         >
           <StopCircle className="h-4 w-4" />
           {isSaving ? "Saving..." : "Stop & Save"}
@@ -215,8 +202,7 @@ export function ActiveTimerCard() {
           variant="ghost"
           onClick={cancelSession}
           disabled={isSaving}
-          className="flex-1 cursor-pointer"
-          style={{ color: "var(--devlog-text-secondary)" }}
+          className="flex-1"
         >
           Cancel
         </Button>
