@@ -8,25 +8,34 @@ import {
   Cell,
 } from "recharts";
 import { Clock, Flame, Activity } from "lucide-react";
-import { useSessionStats, useSessionStreaks } from "@/features/sessions/hooks/useSessions";
+import { useSessionStats } from "@/features/sessions/hooks/useSessions";
 import { useDsaStats } from "@/features/dsa/hooks/useDsaStats";
+import { useDashboardStats } from "@/features/dashboard/hooks/useDashboard";
 import { StatCard } from "@/components/common/StatCard";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDuration, SESSION_TYPE_COLOR } from "@/lib/formatters";
 import { SessionType } from "@devlog/types";
 
 export function DashboardPage() {
   const { data: sessionStats, isLoading: isStatsLoading } = useSessionStats();
-  const { data: sessionStreaks, isLoading: isStreaksLoading } = useSessionStreaks();
-  const { data: dsaStats, isLoading: isDsaLoading } = useDsaStats();
+  const { isLoading: isDsaLoading } = useDsaStats();
+  const { data: dashboardStats, isLoading: isDashboardLoading } =
+    useDashboardStats();
 
   // Combine query loading states without full page spinner
-  const isLoading = isStatsLoading || isStreaksLoading || isDsaLoading;
+  const isLoading = isStatsLoading || isDsaLoading || isDashboardLoading;
 
-  // Prepare chart data for time by SessionType
-  const totalByType = sessionStats?.totalByType || [];
+  // Weekly data comes from the dashboard aggregate endpoint (week-aware)
+  const weeklyBreakdown = dashboardStats?.weeklyBreakdown || [];
+  const weeklyTotalSeconds = weeklyBreakdown.reduce(
+    (sum, item) => sum + item.totalDuration,
+    0
+  );
+
+  // Prepare chart data for time by SessionType this week
   const chartData = Object.values(SessionType).map((type) => {
-    const found = totalByType.find((item: any) => item._id === type);
+    const found = weeklyBreakdown.find((item) => item.type === type);
     const durationInSeconds = found?.totalDuration || 0;
     return {
       type,
@@ -37,24 +46,12 @@ export function DashboardPage() {
   });
 
   return (
-    <div
-      className="p-6 space-y-6 min-h-screen"
-      style={{
-        backgroundColor: "var(--devlog-bg-base)",
-        color: "var(--devlog-text-primary)",
-      }}
-    >
+    <div className="p-6 space-y-6 min-h-screen bg-background text-foreground">
       <div>
-        <h1
-          className="text-2xl font-bold tracking-tight"
-          style={{ color: "var(--devlog-text-primary)" }}
-        >
+        <h1 className="text-2xl font-bold tracking-tight">
           Dashboard
         </h1>
-        <p
-          className="text-sm mt-1"
-          style={{ color: "var(--devlog-text-secondary)" }}
-        >
+        <p className="text-sm mt-1 text-muted-foreground">
           Overview of your activity, productivity, and developer stats
         </p>
       </div>
@@ -63,25 +60,20 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="p-4 border rounded-xl space-y-3"
-              style={{
-                backgroundColor: "var(--devlog-bg-surface)",
-                borderColor: "var(--devlog-border)",
-              }}
-            >
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-8 w-36" />
-              <Skeleton className="h-3 w-20" />
-            </div>
+            <Card key={idx}>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </CardContent>
+            </Card>
           ))
         ) : (
           <>
             <StatCard
-              label="Total Time Spent"
-              value={formatDuration(sessionStats?.totalTimeSpent?.totalDuration || 0)}
-              sublabel="Logged across all sessions"
+              label="Total Time This Week"
+              value={formatDuration(weeklyTotalSeconds)}
+              sublabel="Duration logged so far this week"
               icon={Clock}
             />
             <StatCard
@@ -101,25 +93,13 @@ export function DashboardPage() {
       </div>
 
       {/* Time by SessionType Bar Chart */}
-      <div
-        className="p-6 border rounded-xl space-y-4"
-        style={{
-          backgroundColor: "var(--devlog-bg-surface)",
-          borderColor: "var(--devlog-border)",
-        }}
-      >
+      <div className="p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
         <div>
-          <h3
-            className="text-base font-semibold tracking-tight"
-            style={{ color: "var(--devlog-text-primary)" }}
-          >
+          <h3 className="text-base font-semibold tracking-tight">
             Time Spent by Session Type
           </h3>
-          <p
-            className="text-xs"
-            style={{ color: "var(--devlog-text-secondary)" }}
-          >
-            Distribution of logged time across category types
+          <p className="text-xs text-muted-foreground">
+            Distribution of logged time across category types this week
           </p>
         </div>
 
@@ -157,14 +137,7 @@ export function DashboardPage() {
                         SESSION_TYPE_COLOR[data.type as SessionType] ||
                         "var(--devlog-accent)";
                       return (
-                        <div
-                          className="p-3 rounded-lg border text-xs shadow-lg space-y-1"
-                          style={{
-                            backgroundColor: "var(--devlog-bg-elevated)",
-                            borderColor: "var(--devlog-border)",
-                            color: "var(--devlog-text-primary)",
-                          }}
-                        >
+                        <div className="p-3 rounded-lg border border-border bg-bg-elevated text-foreground text-xs shadow-lg space-y-1">
                           <p className="font-semibold">{data.type}</p>
                           <p style={{ color }}>
                             Duration: {data.formatted} ({data.hours} hrs)

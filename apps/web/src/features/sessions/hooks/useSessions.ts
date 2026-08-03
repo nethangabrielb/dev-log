@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SessionFilters } from "@devlog/types";
+import type { SessionFilters, SessionStatistics } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { keys } from "@/lib/queryKeys";
 
@@ -11,7 +11,7 @@ export function useSessions(filters?: SessionFilters) {
 }
 
 export function useSessionStats() {
-  return useQuery({
+  return useQuery<SessionStatistics>({
     queryKey: keys.sessions.stats(),
     queryFn: sessionsApi.getStats,
   });

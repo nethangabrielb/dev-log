@@ -13,6 +13,9 @@ export const keys = {
     one: (id: string) => ["dsa", id] as const,
     stats: () => ["dsa", "stats"] as const,
   },
+  dashboard: {
+    all: () => ["dashboard"] as const,
+  },
   projects: {
     all: () => ["projects"] as const,
     one: (id: string) => ["projects", id] as const,
