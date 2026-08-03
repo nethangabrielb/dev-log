@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Clock, AlertCircle } from "lucide-react";
 import { useSessions, useDeleteSession } from "../features/sessions/hooks/useSessions";
 import { SessionCard } from "../features/sessions/components/SessionCard";
-import { SessionFormSheet } from "../features/sessions/components/SessionForm";
+import { StartSessionDialog } from "../features/sessions/components/StartSessionDialog";
 import { FilterBar, type FilterValues } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorBoundary } from "../components/common/ErrorBoundary";
@@ -74,7 +74,7 @@ export function SessionsPage() {
             }
           >
             <Plus className="h-4 w-4" />
-            <span>New Session</span>
+            <span>Start Session</span>
           </Button>
         </div>
 
@@ -154,8 +154,8 @@ export function SessionsPage() {
           )}
         </div>
 
-        {/* Session Form Sheet Modal */}
-        <SessionFormSheet open={isFormOpen} onOpenChange={setIsFormOpen} />
+        {/* Start Session Dialog */}
+        <StartSessionDialog open={isFormOpen} onOpenChange={setIsFormOpen} />
       </div>
     </ErrorBoundary>
   );

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SessionType } from "@devlog/types";
+import { LinkedToKind, SessionType } from "@devlog/types";
 
 export const createSessionSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -13,3 +13,24 @@ export const createSessionSchema = z.object({
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
+
+export const sessionTodoSchema = z.object({
+  name: z.string().min(1, "Todo name is required"),
+  completed: z.boolean().default(false),
+});
+
+export const startSessionSchema = z.object({
+  type: z.enum(SessionType),
+  startedAt: z.date(),
+  todos: z.array(sessionTodoSchema).default([]),
+  linkedTo: z
+    .object({
+      kind: z.literal(LinkedToKind.PROJECT),
+      id: z.string().min(1, "Project is required"),
+    })
+    .optional(),
+});
+
+export type SessionTodoInput = z.infer<typeof sessionTodoSchema>;
+export type StartSessionInput = z.infer<typeof startSessionSchema>;
+export type StartSessionFormValues = z.input<typeof startSessionSchema>;
