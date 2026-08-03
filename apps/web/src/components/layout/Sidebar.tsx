@@ -7,16 +7,40 @@ import {
   BookOpen,
   FileCode,
   ClipboardList,
+  BarChart3,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/sessions", label: "Sessions", icon: Clock },
-  { to: "/dsa", label: "DSA", icon: Code2 },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/articles", label: "Articles", icon: BookOpen },
-  { to: "/snippets", label: "Snippets", icon: FileCode },
-  { to: "/daily-reports", label: "Daily Reports", icon: ClipboardList },
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+}
+
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    items: [
+      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+      { to: "/sessions", label: "Sessions", icon: Clock, end: true },
+      { to: "/dsa", label: "DSA", icon: Code2 },
+      { to: "/projects", label: "Projects", icon: FolderKanban },
+      { to: "/articles", label: "Articles", icon: BookOpen },
+      { to: "/snippets", label: "Snippets", icon: FileCode },
+      { to: "/daily-reports", label: "Daily Reports", icon: ClipboardList },
+    ],
+  },
+  {
+    label: "Analyze",
+    items: [
+      { to: "/sessions/overview", label: "Sessions Overview", icon: BarChart3 },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -28,26 +52,35 @@ export function Sidebar() {
         </span>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? "bg-bg-elevated text-accent font-semibold"
-                    : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
-                }`
-              }
-            >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
-            </NavLink>
-          );
-        })}
+        {navGroups.map((group, groupIndex) => (
+          <div key={groupIndex} className="space-y-1">
+            {group.label && (
+              <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                {group.label}
+              </p>
+            )}
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? "bg-bg-elevated text-accent font-semibold"
+                        : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+                    }`
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </aside>
   );

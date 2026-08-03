@@ -1,7 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SessionFilters, SessionStatistics } from "@devlog/types";
+import type { SessionFilters, SessionStatistics, SessionType } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { keys } from "@/lib/queryKeys";
+
+export interface SessionStreak {
+  type: SessionType;
+  currentStreak: number;
+  longestStreak: number;
+}
 
 export function useSessions(filters?: SessionFilters) {
   return useQuery({
@@ -18,7 +24,7 @@ export function useSessionStats() {
 }
 
 export function useSessionStreaks() {
-  return useQuery({
+  return useQuery<SessionStreak[]>({
     queryKey: keys.sessions.streaks(),
     queryFn: sessionsApi.getStreaks,
   });

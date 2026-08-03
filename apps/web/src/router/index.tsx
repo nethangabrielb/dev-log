@@ -4,6 +4,7 @@ import { ActiveSessionProvider } from "../features/sessions/context/ActiveSessio
 import { AppShell } from "../components/layout/AppShell";
 import { DashboardPage } from "../pages/DashboardPage";
 import { SessionsPage } from "../pages/SessionsPage";
+import { SessionsOverviewPage } from "../pages/SessionsOverviewPage";
 import { DSAPage } from "../pages/DSAPage";
 import { ProjectsPage } from "../pages/ProjectsPage";
 import { ProjectDetailPage } from "../pages/ProjectDetailPage";
@@ -29,6 +30,7 @@ export function AppRouter() {
         >
           <Route path="/" element={<DashboardPage />} />
           <Route path="/sessions" element={<SessionsPage />} />
+          <Route path="/sessions/overview" element={<SessionsOverviewPage />} />
           <Route path="/dsa" element={<DSAPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
