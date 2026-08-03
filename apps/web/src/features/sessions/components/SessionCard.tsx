@@ -1,5 +1,5 @@
-import { SessionType } from "@devlog/types";
-import { Trash2, Folder } from "lucide-react";
+import { SessionType, type SessionTodo } from "@devlog/types";
+import { CheckSquare, Folder, Square, Trash2 } from "lucide-react";
 import {
   formatDuration,
   formatRelativeDay,
@@ -11,11 +11,10 @@ import { Button } from "@/components/ui/button";
 export interface SessionData {
   _id?: string;
   id?: string;
-  title: string;
-  sessionType: SessionType;
+  type: SessionType;
   durationInSeconds: number;
-  createdAt?: string;
-  date?: string;
+  startedAt: string;
+  todos?: SessionTodo[];
   linkedTo?: {
     kind?: string;
     id?: string;
@@ -31,42 +30,30 @@ export interface SessionCardProps {
 
 export function SessionCard({ session, onDelete }: SessionCardProps) {
   const sessionId = session._id || session.id || "";
-  const dateStr = session.createdAt || session.date || new Date().toISOString();
   const typeColor =
-    SESSION_TYPE_COLOR[session.sessionType] || "var(--devlog-text-muted)";
+    SESSION_TYPE_COLOR[session.type] || "var(--devlog-text-muted)";
   const projectName = session.linkedTo?.name || session.projectName;
+  const todos = session.todos ?? [];
 
   return (
-    <Card
-      className="group border rounded-lg transition-all"
-      style={{
-        backgroundColor: "var(--devlog-bg-surface)",
-        borderColor: "var(--devlog-border)",
-      }}
-    >
-      <CardContent className="p-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <span
-            className="px-2 py-0.5 text-xs font-mono font-medium rounded border shrink-0"
-            style={{
-              fontFamily: "var(--font-mono)",
-              color: typeColor,
-              borderColor: typeColor,
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
-            }}
-          >
-            {session.sessionType}
-          </span>
-          <div className="min-w-0 flex-1">
-            <h4
-              className="text-sm font-medium truncate"
-              style={{ color: "var(--devlog-text-primary)" }}
+    <Card className="group border rounded-lg transition-all">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <span
+              className="px-2 py-0.5 text-xs font-mono font-medium rounded border shrink-0"
+              style={{
+                fontFamily: "var(--font-mono)",
+                color: typeColor,
+                borderColor: typeColor,
+                backgroundColor: "var(--devlog-bg-elevated)",
+              }}
             >
-              {session.title}
-            </h4>
+              {session.type}
+            </span>
             {projectName && (
               <div
-                className="flex items-center gap-1 text-xs mt-0.5"
+                className="flex items-center gap-1.5 text-xs min-w-0"
                 style={{ color: "var(--devlog-text-secondary)" }}
               >
                 <Folder className="h-3 w-3 shrink-0" />
@@ -74,41 +61,81 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
               </div>
             )}
           </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <span
+              className="text-xs font-mono font-medium px-2 py-1 rounded"
+              style={{
+                fontFamily: "var(--font-mono)",
+                backgroundColor: "var(--devlog-bg-elevated)",
+                color: "var(--devlog-text-primary)",
+              }}
+            >
+              {formatDuration(session.durationInSeconds)}
+            </span>
+            <span
+              className="text-xs font-mono"
+              style={{
+                fontFamily: "var(--font-mono)",
+                color: "var(--devlog-text-secondary)",
+              }}
+            >
+              {formatRelativeDay(session.startedAt)}
+            </span>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onDelete(sessionId)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded"
+                style={{ color: "var(--devlog-danger)" }}
+                title="Delete session"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
-          <span
-            className="text-xs font-mono font-medium px-2 py-1 rounded"
-            style={{
-              fontFamily: "var(--font-mono)",
-              backgroundColor: "var(--devlog-bg-elevated)",
-              color: "var(--devlog-text-primary)",
-            }}
+        {todos.length > 0 && (
+          <ul
+            className="border-t pt-3 space-y-1.5"
+            style={{ borderColor: "var(--devlog-border-subtle)" }}
           >
-            {formatDuration(session.durationInSeconds)}
-          </span>
-          <span
-            className="text-xs font-mono"
-            style={{
-              fontFamily: "var(--font-mono)",
-              color: "var(--devlog-text-secondary)",
-            }}
-          >
-            {formatRelativeDay(dateStr)}
-          </span>
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onDelete(sessionId)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-1 rounded"
-              style={{ color: "var(--devlog-danger)" }}
-              title="Delete session"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+            {todos.map((todo, idx) => (
+              <li
+                key={idx}
+                className="flex items-center gap-2 text-xs font-mono"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                {todo.completed ? (
+                  <CheckSquare
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: "var(--devlog-success)" }}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <Square
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: "var(--devlog-border)" }}
+                    aria-hidden="true"
+                  />
+                )}
+                <span
+                  className="truncate"
+                  style={{
+                    color: todo.completed
+                      ? "var(--devlog-text-muted)"
+                      : "var(--devlog-text-secondary)",
+                    textDecoration: todo.completed ? "line-through" : "none",
+                  }}
+                >
+                  {todo.name}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

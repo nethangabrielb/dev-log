@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SessionType } from "@devlog/types";
 import { Input } from "@/components/ui/input";
+import { SESSION_TYPE_COLOR } from "@/lib/formatters";
 
 export interface FilterValues {
   type?: SessionType | "";
@@ -72,8 +73,9 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
         <button
           type="button"
           onClick={() => handleTypeChange("")}
-          className="px-2.5 py-1 text-xs rounded-md border font-medium transition-colors cursor-pointer"
+          className="px-2.5 py-1 text-xs font-mono rounded-md border font-medium transition-colors cursor-pointer"
           style={{
+            fontFamily: "var(--font-mono)",
             backgroundColor:
               selectedType === ""
                 ? "var(--devlog-accent)"
@@ -94,8 +96,9 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
               key={st}
               type="button"
               onClick={() => handleTypeChange(isSelected ? "" : st)}
-              className="px-2.5 py-1 text-xs rounded-md border font-medium transition-colors cursor-pointer"
+              className="px-2.5 py-1 text-xs font-mono rounded-md border font-medium transition-colors cursor-pointer"
               style={{
+                fontFamily: "var(--font-mono)",
                 backgroundColor: isSelected
                   ? "var(--devlog-accent)"
                   : "var(--devlog-bg-elevated)",
@@ -105,7 +108,19 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
                 borderColor: "var(--devlog-border)",
               }}
             >
-              {st}
+              <span className="flex items-center gap-1.5">
+                {!isSelected && (
+                  <span
+                    aria-hidden="true"
+                    className="h-1.5 w-1.5 rounded-full inline-block"
+                    style={{
+                      backgroundColor:
+                        SESSION_TYPE_COLOR[st] || "var(--devlog-text-muted)",
+                    }}
+                  />
+                )}
+                {st}
+              </span>
             </button>
           );
         })}

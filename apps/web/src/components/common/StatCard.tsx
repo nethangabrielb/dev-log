@@ -10,16 +10,9 @@ export interface StatCardProps {
 
 export function StatCard({ label, value, sublabel, icon: Icon }: StatCardProps) {
   return (
-    <Card
-      className="p-4 border rounded-xl"
-      style={{
-        backgroundColor: "var(--devlog-bg-surface)",
-        borderColor: "var(--devlog-border)",
-        color: "var(--devlog-text-primary)",
-      }}
-    >
+    <Card className="p-4 rounded-xl">
       <CardContent className="p-0 space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span
             className="text-xs font-medium uppercase tracking-wider"
             style={{ color: "var(--devlog-text-secondary)" }}
@@ -28,17 +21,14 @@ export function StatCard({ label, value, sublabel, icon: Icon }: StatCardProps) 
           </span>
           {Icon && (
             <Icon
-              className="h-4 w-4"
+              className="h-4 w-4 shrink-0"
               style={{ color: "var(--devlog-text-muted)" }}
             />
           )}
         </div>
         <div
-          className="text-2xl font-bold font-mono tracking-tight"
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--devlog-text-primary)",
-          }}
+          className="font-mono text-2xl font-bold tracking-tight"
+          style={{ color: "var(--devlog-text-primary)" }}
         >
           {value}
         </div>

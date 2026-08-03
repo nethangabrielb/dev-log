@@ -15,7 +15,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed my-4"
+      className="flex flex-col items-center justify-center px-8 py-16 text-center rounded-xl border border-dashed"
       style={{
         backgroundColor: "var(--devlog-bg-surface)",
         borderColor: "var(--devlog-border)",
@@ -23,7 +23,7 @@ export function EmptyState({
       }}
     >
       <div
-        className="p-3 rounded-full mb-3 border"
+        className="p-3 rounded-full border mb-3"
         style={{
           backgroundColor: "var(--devlog-bg-elevated)",
           borderColor: "var(--devlog-border)",
