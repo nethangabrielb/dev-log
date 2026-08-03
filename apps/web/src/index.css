@@ -5,26 +5,26 @@
 @import "@fontsource-variable/geist";
 
 :root {
-  /* Dark mode palette (FRONTEND.md spec) */
-  --bg-base: #0d0d0f;
-  --bg-surface: #141417;
-  --bg-elevated: #1c1c21;
-  --bg-hover: #22222a;
+  /* DevLog Design System Tokens */
+  --devlog-bg-base: #0d0d0f;
+  --devlog-bg-surface: #141417;
+  --devlog-bg-elevated: #1c1c21;
+  --devlog-bg-hover: #22222a;
 
-  --border: #2a2a35;
-  --border-subtle: #1e1e28;
+  --devlog-border: #2a2a35;
+  --devlog-border-subtle: #1e1e28;
 
-  --text-primary: #e8e8f0;
-  --text-secondary: #8888a4;
-  --text-muted: #55556a;
+  --devlog-text-primary: #e8e8f0;
+  --devlog-text-secondary: #8888a4;
+  --devlog-text-muted: #55556a;
 
-  --accent: #7c6af7;
-  --accent-dim: #4a3f99;
-  --accent-fg: #ffffff;
+  --devlog-accent: #c9762f;
+  --devlog-accent-dim: #8a5220;
+  --devlog-accent-fg: #0d0d0f;
 
-  --success: #4ade80;
-  --warning: #fbbf24;
-  --danger: #f87171;
+  --devlog-success: #4ade80;
+  --devlog-warning: #f4c542;
+  --devlog-danger: #f87171;
 
   /* Shadcn theme tokens mapped to dark theme */
   --background: #0d0d0f;
@@ -65,28 +65,50 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-dim: var(--accent-dim);
-  --color-accent-fg: var(--accent-fg);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
-  --color-border-subtle: var(--border-subtle);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-bg-base: var(--bg-base);
-  --color-bg-surface: var(--bg-surface);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-bg-hover: var(--bg-hover);
+  --color-devlog-bg-base: var(--devlog-bg-base);
+  --color-devlog-bg-surface: var(--devlog-bg-surface);
+  --color-devlog-bg-elevated: var(--devlog-bg-elevated);
+  --color-devlog-bg-hover: var(--devlog-bg-hover);
 
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
+  --color-devlog-border: var(--devlog-border);
+  --color-devlog-border-subtle: var(--devlog-border-subtle);
 
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
+  --color-devlog-text-primary: var(--devlog-text-primary);
+  --color-devlog-text-secondary: var(--devlog-text-secondary);
+  --color-devlog-text-muted: var(--devlog-text-muted);
+
+  --color-devlog-accent: var(--devlog-accent);
+  --color-devlog-accent-dim: var(--devlog-accent-dim);
+  --color-devlog-accent-fg: var(--devlog-accent-fg);
+
+  --color-devlog-success: var(--devlog-success);
+  --color-devlog-warning: var(--devlog-warning);
+  --color-devlog-danger: var(--devlog-danger);
+
+  --color-bg-base: var(--devlog-bg-base);
+  --color-bg-surface: var(--devlog-bg-surface);
+  --color-bg-elevated: var(--devlog-bg-elevated);
+  --color-bg-hover: var(--devlog-bg-hover);
+
+  --color-border-subtle: var(--devlog-border-subtle);
+
+  --color-text-primary: var(--devlog-text-primary);
+  --color-text-secondary: var(--devlog-text-secondary);
+  --color-text-muted: var(--devlog-text-muted);
+
+  --color-accent: var(--devlog-accent);
+  --color-accent-dim: var(--devlog-accent-dim);
+  --color-accent-fg: var(--devlog-accent-fg);
+
+  --color-success: var(--devlog-success);
+  --color-warning: var(--devlog-warning);
+  --color-danger: var(--devlog-danger);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -101,8 +123,8 @@
   html,
   body {
     @apply bg-background text-foreground font-sans;
-    background-color: var(--bg-base);
-    color: var(--text-primary);
+    background-color: var(--devlog-bg-base);
+    color: var(--devlog-text-primary);
     min-height: 100vh;
     margin: 0;
   }
