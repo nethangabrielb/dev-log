@@ -1,8 +1,9 @@
 {
   "name": "@devlog/types",
   "version": "0.0.1",
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc"
