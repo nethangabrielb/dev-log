@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
@@ -17,7 +17,13 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Select } from "../components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../components/ui/select";
 
 const TIMEZONES = [
   { value: "Asia/Manila", label: "Asia/Manila (PHT, UTC+8)" },
@@ -41,6 +47,7 @@ export function RegisterPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
@@ -58,27 +65,52 @@ export function RegisterPage() {
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          "Registration failed. Please try again.",
+          "Registration failed. Please try again."
       );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
-      <Card className="w-full max-w-md border border-border bg-card shadow-2xl">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "var(--devlog-bg-base)",
+        color: "var(--devlog-text-primary)",
+      }}
+    >
+      <Card
+        className="w-full max-w-md border rounded-xl"
+        style={{
+          backgroundColor: "var(--devlog-bg-surface)",
+          borderColor: "var(--devlog-border)",
+        }}
+      >
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center text-text-primary">
+          <CardTitle
+            className="text-2xl font-bold tracking-tight text-center"
+            style={{ color: "var(--devlog-text-primary)" }}
+          >
             Create your account
           </CardTitle>
-          <CardDescription className="text-center text-sm text-text-secondary">
+          <CardDescription
+            className="text-center text-sm"
+            style={{ color: "var(--devlog-text-secondary)" }}
+          >
             Enter your details to register for Dev
-            <span className="text-accent font-semibold">Log</span>
+            <span style={{ color: "var(--devlog-accent)" }}>Log</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm rounded-md border border-danger/30 bg-danger/10 text-danger">
+              <div
+                className="p-3 text-sm rounded-md border"
+                style={{
+                  backgroundColor: "rgba(248, 113, 113, 0.1)",
+                  borderColor: "var(--devlog-danger)",
+                  color: "var(--devlog-danger)",
+                }}
+              >
                 {error}
               </div>
             )}
@@ -86,7 +118,8 @@ export function RegisterPage() {
             <div className="space-y-2 text-left">
               <label
                 htmlFor="username"
-                className="text-sm font-medium leading-none text-text-primary"
+                className="text-sm font-medium leading-none"
+                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Username
               </label>
@@ -95,17 +128,19 @@ export function RegisterPage() {
                 type="text"
                 placeholder="johndoe"
                 {...register("username")}
-                className="bg-bg-elevated border-border text-text-primary placeholder:text-text-muted focus-visible:ring-accent"
               />
               {errors.username && (
-                <p className="text-xs text-danger">{errors.username.message}</p>
+                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2 text-left">
               <label
                 htmlFor="email"
-                className="text-sm font-medium leading-none text-text-primary"
+                className="text-sm font-medium leading-none"
+                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Email
               </label>
@@ -114,17 +149,19 @@ export function RegisterPage() {
                 type="email"
                 placeholder="name@example.com"
                 {...register("email")}
-                className="bg-bg-elevated border-border text-text-primary placeholder:text-text-muted focus-visible:ring-accent"
               />
               {errors.email && (
-                <p className="text-xs text-danger">{errors.email.message}</p>
+                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2 text-left">
               <label
                 htmlFor="password"
-                className="text-sm font-medium leading-none text-text-primary"
+                className="text-sm font-medium leading-none"
+                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Password
               </label>
@@ -133,55 +170,81 @@ export function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 {...register("password")}
-                className="bg-bg-elevated border-border text-text-primary placeholder:text-text-muted focus-visible:ring-accent"
               />
               {errors.password && (
-                <p className="text-xs text-danger">{errors.password.message}</p>
+                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2 text-left">
               <label
                 htmlFor="timezone"
-                className="text-sm font-medium leading-none text-text-primary"
+                className="text-sm font-medium leading-none"
+                style={{ color: "var(--devlog-text-primary)" }}
               >
                 Timezone
               </label>
-              <Select
-                id="timezone"
-                {...register("timezone")}
-                className="bg-bg-elevated border-border text-text-primary focus-visible:ring-accent"
-              >
-                {TIMEZONES.map((tz) => (
-                  <option
-                    key={tz.value}
-                    value={tz.value}
-                    className="bg-bg-elevated text-text-primary"
-                  >
-                    {tz.label}
-                  </option>
-                ))}
-              </Select>
+              <Controller
+                name="timezone"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.timezone && (
-                <p className="text-xs text-danger">{errors.timezone.message}</p>
+                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                  {errors.timezone.message}
+                </p>
               )}
             </div>
 
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-medium bg-accent text-accent-fg hover:bg-accent/90 cursor-pointer"
+              className="w-full font-medium transition-colors cursor-pointer border-0 shadow-none"
+              style={{
+                backgroundColor: "var(--devlog-accent)",
+                color: "var(--devlog-accent-fg)",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  "var(--devlog-accent-dim)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  "var(--devlog-accent)")
+              }
             >
               {isSubmitting ? "Creating account..." : "Register"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center border-t border-border py-4 bg-bg-surface rounded-b-xl">
-          <p className="text-sm text-text-secondary">
+        <CardFooter
+          className="flex justify-center border-t py-4 rounded-b-xl"
+          style={{
+            backgroundColor: "var(--devlog-bg-surface)",
+            borderColor: "var(--devlog-border)",
+          }}
+        >
+          <p className="text-sm" style={{ color: "var(--devlog-text-secondary)" }}>
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-medium text-accent hover:underline"
+              className="font-medium hover:underline"
+              style={{ color: "var(--devlog-accent)" }}
             >
               Log in
             </Link>
