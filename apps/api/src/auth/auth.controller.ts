@@ -7,6 +7,7 @@ import {
   Get,
   Res,
   HttpCode,
+  ConflictException,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/users.dto';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -30,8 +31,16 @@ export class AuthController {
     // hash password
     const hashedPassword = await bcrypt.hash(body.password, 10);
     body.password = hashedPassword;
-    const user = await this.userService.create(body);
-    return { success: true, message: 'User registered successfully', user };
+    try {
+      const user = await this.userService.create(body);
+      return { success: true, message: 'User registered successfully', user };
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new ConflictException('User already exists');
+      }
+
+      throw error;
+    }
   }
 
   @Public()

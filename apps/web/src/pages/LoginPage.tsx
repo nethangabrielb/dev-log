@@ -40,10 +40,14 @@ export function LoginPage() {
       await queryClient.invalidateQueries({ queryKey: keys.auth.profile() });
       navigate("/");
     } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "Invalid credentials. Please try again."
-      );
+      const serverMessage = err?.response?.data?.message;
+      const displayMsg =
+        Array.isArray(serverMessage)
+          ? serverMessage[0]
+          : serverMessage && serverMessage !== "Unauthorized"
+          ? serverMessage
+          : "Invalid credentials. Please try again.";
+      setError(displayMsg);
     }
   };
 
@@ -106,7 +110,10 @@ export function LoginPage() {
                 {...register("email")}
               />
               {errors.email && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--devlog-danger)" }}
+                >
                   {errors.email.message}
                 </p>
               )}
@@ -126,7 +133,10 @@ export function LoginPage() {
                 {...register("password")}
               />
               {errors.password && (
-                <p className="text-xs" style={{ color: "var(--devlog-danger)" }}>
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--devlog-danger)" }}
+                >
                   {errors.password.message}
                 </p>
               )}
@@ -144,8 +154,7 @@ export function LoginPage() {
                   "var(--devlog-accent-dim)")
               }
               onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--devlog-accent)")
+                (e.currentTarget.style.backgroundColor = "var(--devlog-accent)")
               }
             >
               {isSubmitting ? "Logging in..." : "Log in"}
@@ -159,7 +168,10 @@ export function LoginPage() {
             borderColor: "var(--devlog-border)",
           }}
         >
-          <p className="text-sm" style={{ color: "var(--devlog-text-secondary)" }}>
+          <p
+            className="text-sm"
+            style={{ color: "var(--devlog-text-secondary)" }}
+          >
             Don't have an account?{" "}
             <Link
               to="/register"
