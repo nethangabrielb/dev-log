@@ -2,7 +2,6 @@ import { client } from "./client";
 import type {
   ProjectCategory,
   ProjectStatus,
-  SessionFrequencyOverTime,
   TasksCompleted,
   TotalTimeLogged,
 } from "@devlog/types";
@@ -32,7 +31,7 @@ export type UpdateProjectDto = Partial<CreateProjectDto>;
 export interface ProjectStats {
   totalTimeLogged: TotalTimeLogged;
   tasksCompleted: TasksCompleted;
-  sessionFrequencyOverTime: SessionFrequencyOverTime[];
+  sessionFrequencyOverTime: { date: string; count: number }[];
 }
 
 export const projectsApi = {
