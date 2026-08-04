@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { SESSION_TYPE_COLOR } from "@/lib/formatters";
 import { useActiveSession } from "../context/ActiveSessionContext";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -33,6 +34,11 @@ export function ActiveTimerCard() {
   const [now, setNow] = useState(() => Date.now());
   const [todoInput, setTodoInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const { data: projects } = useProjects();
+  const linkedProject = activeSession?.linkedTo
+    ? projects?.find((p) => (p._id || p.id) === activeSession.linkedTo?.id)
+    : undefined;
 
   useEffect(() => {
     if (!activeSession) return;
@@ -112,7 +118,9 @@ export function ActiveTimerCard() {
           style={{ color: "var(--devlog-text-secondary)" }}
         >
           <Folder className="h-3 w-3 shrink-0" />
-          <span className="truncate">Project session</span>
+          <span className="truncate">
+            {linkedProject?.name ?? "Project session"}
+          </span>
         </div>
       )}
 

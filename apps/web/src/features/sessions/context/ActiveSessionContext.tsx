@@ -162,6 +162,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     } finally {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     }
   }, [activeSession, queryClient]);
 
