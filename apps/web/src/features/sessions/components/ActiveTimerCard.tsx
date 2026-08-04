@@ -75,7 +75,7 @@ export function ActiveTimerCard() {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-40 w-80 rounded-lg border p-4 space-y-3"
+      className="fixed bottom-6 right-6 z-40 w-96 rounded-lg border p-4 space-y-3"
       style={{
         backgroundColor: "var(--devlog-bg-surface)",
         borderColor: "var(--devlog-border)",
@@ -124,13 +124,13 @@ export function ActiveTimerCard() {
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 overflow-y-auto pr-1 max-h-40">
         {activeSession.todos.map((todo, index) => (
-          <div key={index} className="flex items-center gap-2 text-xs">
+          <div key={index} className="flex items-start gap-2 text-xs">
             <button
               type="button"
               onClick={() => toggleTodo(index)}
-              className="shrink-0 cursor-pointer p-0"
+              className="shrink-0 cursor-pointer p-0 mt-0.5"
               title={todo.completed ? "Mark as not done" : "Mark as done"}
             >
               {todo.completed ? (
@@ -146,7 +146,7 @@ export function ActiveTimerCard() {
               )}
             </button>
             <span
-              className="flex-1 truncate font-mono"
+              className="flex-1 min-w-0 whitespace-normal break-words leading-snug font-mono"
               style={{
                 fontFamily: "var(--font-mono)",
                 color: todo.completed
@@ -160,7 +160,7 @@ export function ActiveTimerCard() {
             <button
               type="button"
               onClick={() => removeTodo(index)}
-              className="shrink-0 cursor-pointer rounded-sm p-0.5 transition-colors hover:bg-[var(--devlog-bg-hover)]"
+              className="shrink-0 cursor-pointer rounded-sm p-0.5 mt-0.5 transition-colors hover:bg-[var(--devlog-bg-hover)]"
               style={{ color: "var(--devlog-text-muted)" }}
               title="Remove todo"
             >
@@ -168,31 +168,31 @@ export function ActiveTimerCard() {
             </button>
           </div>
         ))}
+      </div>
 
-        <div className="flex items-center gap-2 pt-1">
-          <Input
-            value={todoInput}
-            onChange={(e) => setTodoInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddTodo();
-              }
-            }}
-            placeholder="Add a task..."
-            className="text-xs"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleAddTodo}
-            className="shrink-0"
-            title="Add todo"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex items-center gap-2 pt-1">
+        <Input
+          value={todoInput}
+          onChange={(e) => setTodoInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAddTodo();
+            }
+          }}
+          placeholder="Add a task..."
+          className="text-xs"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleAddTodo}
+          className="shrink-0"
+          title="Add todo"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="flex items-center gap-2 pt-1">
