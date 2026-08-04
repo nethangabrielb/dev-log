@@ -12,6 +12,7 @@ type MockProjectsService = {
   update: jest.Mock;
   remove: jest.Mock;
   getStats: jest.Mock;
+  getStatistics: jest.Mock;
 };
 
 describe('ProjectsController', () => {
@@ -20,6 +21,7 @@ describe('ProjectsController', () => {
   const req = {
     user: {
       userId: 'user-1',
+      timezone: 'UTC',
     },
     query: {
       timezone: 'UTC',
@@ -39,6 +41,7 @@ describe('ProjectsController', () => {
             update: jest.fn(),
             remove: jest.fn(),
             getStats: jest.fn(),
+            getStatistics: jest.fn(),
           },
         },
       ],
@@ -92,6 +95,14 @@ describe('ProjectsController', () => {
 
     await expect(controller.getStats(req, '1')).resolves.toEqual(stats);
     expect(service.getStats).toHaveBeenCalledWith('1', 'user-1', 'UTC');
+  });
+
+  it('should return aggregate statistics from the service', async () => {
+    const stats = { totalProjects: 3 };
+    service.getStatistics.mockResolvedValue(stats);
+
+    await expect(controller.getStatistics(req)).resolves.toEqual(stats);
+    expect(service.getStatistics).toHaveBeenCalledWith('user-1', 'UTC');
   });
 
   it('should update a project through the service', async () => {

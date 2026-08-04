@@ -19,6 +19,8 @@ type MockProjectModel = {
   create: jest.Mock;
   find: jest.Mock;
   findById: jest.Mock;
+  countDocuments: jest.Mock;
+  aggregate: jest.Mock;
 };
 
 describe('ProjectsService', () => {
@@ -38,6 +40,8 @@ describe('ProjectsService', () => {
             create: jest.fn(),
             find: jest.fn(),
             findById: jest.fn(),
+            countDocuments: jest.fn(),
+            aggregate: jest.fn(),
           },
         },
         {
@@ -150,6 +154,46 @@ describe('ProjectsService', () => {
     expect(stats.tasksCompleted).toEqual({ totalCompleted: 2 });
     expect(stats.sessionFrequencyOverTime).toHaveLength(14);
     expect(stats.sessionFrequencyOverTime).toContainEqual({
+      date: today,
+      count: 3,
+    });
+  });
+
+  it('should return aggregate statistics across all projects', async () => {
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: timezone,
+    });
+
+    model.countDocuments.mockReturnValue(createQueryResult(3));
+    model.aggregate
+      .mockReturnValueOnce(
+        createQueryResult([
+          { status: 'active', count: 2 },
+          { status: 'completed', count: 1 },
+        ]),
+      )
+      .mockReturnValueOnce(
+        createQueryResult([{ category: 'personal', count: 3 }]),
+      );
+    sessionModel.aggregate
+      .mockReturnValueOnce(createQueryResult([{ totalDuration: 90 }]))
+      .mockResolvedValueOnce([{ totalCompleted: 2 }])
+      .mockResolvedValueOnce([{ _id: today, count: 3 }]);
+
+    const stats = await service.getStatistics(userId, timezone);
+
+    expect(stats.totalProjects).toEqual(3);
+    expect(stats.totalTimeLogged).toEqual(90);
+    expect(stats.totalTasksCompleted).toEqual(2);
+    expect(stats.breakdownByStatus).toEqual([
+      { status: 'active', count: 2 },
+      { status: 'completed', count: 1 },
+    ]);
+    expect(stats.breakdownByCategory).toEqual([
+      { category: 'personal', count: 3 },
+    ]);
+    expect(stats.sessionActivityOverTime).toHaveLength(14);
+    expect(stats.sessionActivityOverTime).toContainEqual({
       date: today,
       count: 3,
     });
