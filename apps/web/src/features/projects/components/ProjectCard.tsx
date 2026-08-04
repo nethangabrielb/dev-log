@@ -34,7 +34,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
       className="group cursor-pointer transition-all hover:ring-accent/50"
       onClick={() => navigate(`/projects/${id}`)}
     >
-      <CardContent className="space-y-3">
+      <CardContent className="flex h-full flex-col space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold tracking-tight truncate text-foreground">
@@ -62,7 +62,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
           </p>
         )}
 
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-1.5 text-xs font-mono text-foreground">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
             {isStatsLoading ? "—" : formatDuration(totalDuration)}
