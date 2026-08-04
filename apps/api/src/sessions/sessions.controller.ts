@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   Req,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import type { SessionFilters } from '@devlog/types';
 
 @Controller('sessions')
 export class SessionsController {
@@ -23,9 +25,9 @@ export class SessionsController {
   }
 
   @Get()
-  findAll(@Req() req: any) {
+  findAll(@Query() filters: SessionFilters, @Req() req: any) {
     const userId = req.user.userId;
-    return this.sessionsService.findAll(userId);
+    return this.sessionsService.findAll(userId, filters);
   }
 
   @Get('streaks')

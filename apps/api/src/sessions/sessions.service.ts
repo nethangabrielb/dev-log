@@ -15,6 +15,7 @@ import {
   TotalTimeSpent,
   SessionCountOverTime,
   SessionStatistics,
+  SessionFilters,
   SessionType,
 } from '@devlog/types';
 
@@ -33,8 +34,23 @@ export class SessionsService {
     return createdSession.save();
   }
 
-  async findAll(userId: string) {
-    return this.sessionModel.find({ userId }).exec();
+  async findAll(userId: string, filters: SessionFilters = {}) {
+    const query: Record<string, any> = { userId };
+    if (filters.type) query.type = filters.type;
+    if (filters.startDate) {
+      query.startedAt = {
+        ...(query.startedAt ?? {}),
+        $gte: new Date(`${filters.startDate}T00:00:00.000`),
+      };
+    }
+    if (filters.endDate) {
+      query.startedAt = {
+        ...(query.startedAt ?? {}),
+        $lte: new Date(`${filters.endDate}T23:59:59.999`),
+      };
+    }
+
+    return this.sessionModel.find(query).sort({ startedAt: -1 }).exec();
   }
 
   async findOne(id: string, userId: string) {

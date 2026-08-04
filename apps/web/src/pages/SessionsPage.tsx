@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Clock, AlertCircle } from "lucide-react";
+import { Plus, Clock, AlertCircle, Loader2 } from "lucide-react";
 import type { SessionTodo } from "@devlog/types";
 import {
   useSessions,
@@ -15,7 +15,6 @@ import { useActiveSession } from "../features/sessions/context/ActiveSessionCont
 import { FilterBar, type FilterValues } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorBoundary } from "../components/common/ErrorBoundary";
-import { Skeleton } from "../components/ui/skeleton";
 import { Button } from "../components/ui/button";
 import { getApiErrorMessage } from "../lib/apiError";
 
@@ -98,24 +97,12 @@ export function SessionsPage() {
         {/* Session List / Skeleton Loaders / Empty State */}
         <div className="space-y-3">
           {isLoading ? (
-            Array.from({ length: 5 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="p-4 border border-border rounded-lg flex items-center justify-between bg-bg-surface"
-              >
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-6 w-20 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-28" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-6 w-16 rounded" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              </div>
-            ))
+            <div className="flex items-center justify-center py-16">
+              <Loader2
+                className="h-8 w-8 animate-spin"
+                style={{ color: "var(--devlog-accent)" }}
+              />
+            </div>
           ) : !isError && sessions.length === 0 ? (
             <EmptyState
               icon={Clock}

@@ -75,8 +75,21 @@ describe('SessionsController', () => {
     const sessions = [{ id: 'session-1' }];
     service.findAll.mockResolvedValue(sessions);
 
-    await expect(controller.findAll(req)).resolves.toEqual(sessions);
-    expect(service.findAll).toHaveBeenCalledWith('user-1');
+    await expect(controller.findAll({}, req)).resolves.toEqual(sessions);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {});
+  });
+
+  it('should forward filters to the service', async () => {
+    const sessions = [{ id: 'session-1' }];
+    service.findAll.mockResolvedValue(sessions);
+    const filters = {
+      type: SessionType.PROJECT,
+      startDate: '2024-01-01',
+      endDate: '2024-01-31',
+    };
+
+    await expect(controller.findAll(filters, req)).resolves.toEqual(sessions);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', filters);
   });
 
   it('should return session streaks from the service', async () => {
