@@ -1,71 +1,42 @@
-# DevLog Frontend — Agent Rules
+# Frontend Rules
 
-Skills available in .agents/skills/ — check them for task-specific rules
-before writing session, styling, API, or form code. Full spec: docs/FRONTEND.
+## Stack
 
-## Stack (non-negotiable)
+React 19 + Vite + TypeScript. TanStack Query v5, React Router v7,
+React Hook Form + Zod, shadcn/ui + Tailwind, Recharts, date-fns, Axios.
 
-- React 18 + Vite + TypeScript
-- TanStack Query v5 for all server state — no useEffect for data fetching
-- React Router v6 for routing
-- React Hook Form + Zod for all forms
-- shadcn/ui for components, Tailwind for styling
-- Recharts for charts, date-fns for dates, Axios for HTTP
+## Conventions
 
-## Monorepo rules
+### Types
+Import enums/interfaces from `@devlog/types`. Never redefine locally.
 
-- Import enums and interfaces from `@devlog/types` — never redefine them locally
-- SessionType, ProjectStatus, ArticleStatus, ArticleCategory etc. all live there
+### API layer
+- Client: `src/api/client.ts` (Axios, withCredentials, 401 → /login)
+- Per-resource: `src/api/<name>.api.ts` — exported object of async functions
+- Never call Axios directly in components or hooks
 
-## API layer
+### State
+- Query keys: `src/lib/queryKeys.ts` factory only
+- Hooks: `src/features/<name>/hooks/` — wrap all queries
+- Pages import hooks, never `useQuery` directly
 
-- All API calls go through `src/api/client.ts` (Axios instance with withCredentials: true)
-- Per-resource modules in `src/api/*.api.ts` — plain async functions, no classes
-- Never call Axios directly inside a component or hook
+### Styling
+- Dark mode only. CSS variables in index.css, never hardcode hex.
+- Tokens prefixed `--devlog-*` (not shadcn's `--accent`, `--border`, etc.)
+- Accent: `--devlog-accent` (#c9762f terminal amber)
+- Fonts: Geist body, IBM Plex Mono for data/numbers
+- No inline styles. No Tailwind color utilities for branded elements.
+- Flat fill buttons, no gradients. Focus rings at low opacity.
 
-## State
-
-- All query keys go through the factory in `src/lib/queryKeys.ts`
-- All queries wrapped in feature-scoped hooks in `src/features/<name>/hooks/`
-- Pages import hooks, never useQuery directly
-
-## Styling
-
-- Dark mode only — CSS variables defined in index.css, never hardcode hex values
-- Accent color is --devlog-accent (terminal amber, #c9762f) — never use plain
-  --accent, that's shadcn's own token and gets overridden in dark mode
-- All DevLog design tokens are prefixed --devlog-\* to avoid colliding with
-  shadcn's generated :root/.dark variables
-- Font: Geist for body, IBM Plex Mono for data/numbers/dates/badges
-- No inline styles
-
-## Folder rules
-
-- src/pages/ — thin route wrappers only, composition happens in features/
-- src/features/<name>/ — components, hooks, schemas scoped to one resource
-- src/components/ui/ — shadcn generated, do not hand-edit
-
-## Color enforcement
-
-- Never use Tailwind's built-in color utility classes (bg-orange-500, text-purple-600,
-  border-gray-800, etc.) for anything DevLog-branded — always var(--devlog-\*)
-- Buttons and interactive elements: flat fill, no gradients, no glossy box-shadow
-- Focus rings use var(--devlog-accent) at low opacity, not full-strength glow
-
-## Sessions data model
-
-- Sessions have NO title and NO notes field on the backend — do not invent one
-- CreateSessionDto: type, durationInSeconds, startedAt, endedAt, todos?
-  ({ name, completed }[]), linkedTo?
-- durationInSeconds is NOT derived server-side — compute endedAt - startedAt
-  client-side and send explicitly alongside both timestamps
-- Sessions are created via start/stop timer only, never a manual form
-- Todos are editable (add/toggle/remove) only before and during an active
-  session — once POSTed, they render read-only on SessionCard
+### Folder structure
+- `src/pages/` — thin route wrappers only
+- `src/features/<name>/` — components, hooks, schemas per resource
+- `src/components/ui/` — shadcn-generated, do not hand-edit
 
 ## Skills
 
-7 skills registered via opencode.json skills.paths — they auto-trigger on
-task description, no @-mention needed. Only @-mention docs/FRONTEND.md
-directly when building a page from scratch and want the full spec loaded
-up front rather than relying on skill-match.
+7 skills in `.agents/skills/`. They auto-trigger on task description.
+Use them for: API/query patterns, design tokens, forms, sessions model,
+shadcn/ui, recharts, react-hook-form + zod.
+
+Full page specs: `docs/FRONTEND.md` (use when building a page from scratch).
