@@ -6,7 +6,6 @@ import {
   type SessionData,
 } from "../features/sessions/components/SessionCard";
 import { StartSessionDialog } from "../features/sessions/components/StartSessionDialog";
-import { ActiveTimerCard } from "../features/sessions/components/ActiveTimerCard";
 import { useActiveSession } from "../features/sessions/context/ActiveSessionContext";
 import { FilterBar, type FilterValues } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
@@ -70,12 +69,8 @@ export function SessionsPage() {
           )}
         </div>
 
-        {/* Active Session Timer / Filter Bar */}
-        {activeSession ? (
-          <ActiveTimerCard />
-        ) : (
-          <FilterBar filters={filters} onChange={setFilters} />
-        )}
+        {/* Filter Bar */}
+        <FilterBar filters={filters} onChange={setFilters} />
 
         {/* API Fetch Error State */}
         {isError && (
