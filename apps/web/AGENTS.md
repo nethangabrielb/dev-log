@@ -62,3 +62,10 @@ before writing session, styling, API, or form code. Full spec: docs/FRONTEND.
 - Sessions are created via start/stop timer only, never a manual form
 - Todos are editable (add/toggle/remove) only before and during an active
   session — once POSTed, they render read-only on SessionCard
+
+## Skills
+
+7 skills registered via opencode.json skills.paths — they auto-trigger on
+task description, no @-mention needed. Only @-mention docs/FRONTEND.md
+directly when building a page from scratch and want the full spec loaded
+up front rather than relying on skill-match.
