@@ -27,14 +27,27 @@ export interface SessionData {
 export interface SessionCardProps {
   session: SessionData;
   onDelete?: (id: string) => void;
+  onToggleTodo?: (sessionId: string, todos: SessionTodo[]) => void;
 }
 
-export function SessionCard({ session, onDelete }: SessionCardProps) {
+export function SessionCard({
+  session,
+  onDelete,
+  onToggleTodo,
+}: SessionCardProps) {
   const sessionId = session._id || session.id || "";
   const typeColor =
     SESSION_TYPE_COLOR[session.type] || "var(--devlog-text-muted)";
   const projectName = session.linkedTo?.name || session.projectName;
   const todos = session.todos ?? [];
+
+  const handleToggleTodo = (index: number) => {
+    if (!onToggleTodo) return;
+    const next = todos.map((todo, i) =>
+      i === index ? { ...todo, completed: !todo.completed } : todo
+    );
+    onToggleTodo(sessionId, next);
+  };
 
   return (
     <Card className="group transition-all">
@@ -103,17 +116,19 @@ export function SessionCard({ session, onDelete }: SessionCardProps) {
                 key={idx}
                 className="flex items-center gap-2 text-xs font-mono"
               >
-                {todo.completed ? (
-                  <CheckSquare
-                    className="h-3.5 w-3.5 shrink-0 text-success"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <Square
-                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleToggleTodo(idx)}
+                  className="shrink-0 cursor-pointer rounded-sm p-0 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-100"
+                  title={todo.completed ? "Mark as not done" : "Mark as done"}
+                  disabled={!onToggleTodo}
+                >
+                  {todo.completed ? (
+                    <CheckSquare className="h-3.5 w-3.5 shrink-0 text-success" />
+                  ) : (
+                    <Square className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  )}
+                </button>
                 <span
                   className={cn(
                     "truncate",

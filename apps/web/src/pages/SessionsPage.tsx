@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Plus, Clock, AlertCircle } from "lucide-react";
-import { useSessions, useDeleteSession } from "../features/sessions/hooks/useSessions";
+import type { SessionTodo } from "@devlog/types";
+import {
+  useSessions,
+  useDeleteSession,
+  useUpdateSession,
+} from "../features/sessions/hooks/useSessions";
 import {
   SessionCard,
   type SessionData,
@@ -30,6 +35,7 @@ export function SessionsPage() {
     endDate: filters.endDate || undefined,
   });
   const { mutate: deleteSession } = useDeleteSession();
+  const { mutate: updateSession } = useUpdateSession();
 
   const sessions: SessionData[] = (() => {
     const res = rawSessions as SessionListResponse | null;
@@ -43,6 +49,10 @@ export function SessionsPage() {
     if (confirm("Are you sure you want to delete this session?")) {
       deleteSession(id);
     }
+  };
+
+  const handleToggleTodo = (sessionId: string, todos: SessionTodo[]) => {
+    updateSession({ id: sessionId, dto: { todos } });
   };
 
   return (
@@ -129,6 +139,7 @@ export function SessionsPage() {
                 key={session._id || session.id}
                 session={session}
                 onDelete={handleDelete}
+                onToggleTodo={handleToggleTodo}
               />
             ))
           )}

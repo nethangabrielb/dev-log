@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import { AlertCircle, Clock, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { ProjectStatus } from "@devlog/types";
+import type { SessionTodo } from "@devlog/types";
 import {
   useProject,
   useProjectStats,
@@ -20,7 +21,7 @@ import {
 } from "@/features/projects/hooks/useProjects";
 import { ProjectDialog } from "@/features/projects/components/ProjectDialog";
 import { SessionCard, type SessionData } from "@/features/sessions/components/SessionCard";
-import { useSessions, useDeleteSession } from "@/features/sessions/hooks/useSessions";
+import { useSessions, useDeleteSession, useUpdateSession } from "@/features/sessions/hooks/useSessions";
 import { StatCard } from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,6 +59,11 @@ export function ProjectDetailPage() {
 
   const { data: rawSessions, isLoading: isSessionsLoading } = useSessions();
   const { mutate: deleteSession } = useDeleteSession();
+  const { mutate: updateSession } = useUpdateSession();
+
+  const handleToggleTodo = (sessionId: string, todos: SessionTodo[]) => {
+    updateSession({ id: sessionId, dto: { todos } });
+  };
 
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -315,6 +321,7 @@ export function ProjectDetailPage() {
                     key={session._id || session.id}
                     session={session}
                     onDelete={handleDeleteSession}
+                    onToggleTodo={handleToggleTodo}
                   />
                 ))
               )}
