@@ -130,6 +130,7 @@ export function DashboardPage() {
                   unit="h"
                 />
                 <Tooltip
+                  cursor={{ fill: "var(--devlog-bg-hover)" }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
