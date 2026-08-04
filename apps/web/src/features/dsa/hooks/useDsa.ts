@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 import {
   dsaApi,
   type CreateDsaDto,
@@ -13,6 +14,28 @@ export function useDsa(filters?: DsaFilters) {
     queryKey: keys.dsa.all(filters),
     queryFn: () => dsaApi.findAll(filters),
   });
+}
+
+function applyToDsaCache(
+  qc: QueryClient,
+  mutate: (problem: DsaRecord) => DsaRecord | null
+) {
+  for (const [queryKey] of qc.getQueriesData({ queryKey: ["dsa"] })) {
+    qc.setQueryData(queryKey, (old: unknown) => {
+      const apply = (list?: DsaRecord[] | null): DsaRecord[] | undefined =>
+        list
+          ?.map(mutate)
+          .filter((p): p is DsaRecord => p !== null);
+
+      if (Array.isArray(old)) return apply(old);
+      if (old && typeof old === "object") {
+        const record = old as { data?: DsaRecord[]; items?: DsaRecord[] };
+        if (Array.isArray(record.data)) return { ...record, data: apply(record.data) };
+        if (Array.isArray(record.items)) return { ...record, items: apply(record.items) };
+      }
+      return old;
+    });
+  }
 }
 
 export function useCreateDsa() {
@@ -31,7 +54,22 @@ export function useUpdateDsa() {
   return useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateDsaDto }) =>
       dsaApi.update(id, dto),
-    onSuccess: () => {
+    onMutate: async ({ id, dto }) => {
+      await qc.cancelQueries({ queryKey: ["dsa"] });
+      const previous = qc.getQueriesData({ queryKey: ["dsa"] });
+      applyToDsaCache(qc, (problem) => {
+        const problemId = problem._id || problem.id;
+        if (problemId !== id) return problem;
+        return { ...problem, ...dto } as DsaRecord;
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      for (const [queryKey, data] of context?.previous ?? []) {
+        qc.setQueryData(queryKey, data);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["dsa"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
