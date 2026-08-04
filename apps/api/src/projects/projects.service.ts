@@ -9,7 +9,14 @@ import { Project, ProjectDocument } from './schemas/project.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session, SessionDocument } from '../sessions/schemas/sessions.schema';
-import { TotalTimeLogged, TasksCompleted } from '@devlog/types';
+import {
+  LinkedToKind,
+  ProjectsCategoryBreakdown,
+  ProjectsStatistics,
+  ProjectsStatusBreakdown,
+  TasksCompleted,
+  TotalTimeLogged,
+} from '@devlog/types';
 
 @Injectable()
 export class ProjectsService {
@@ -58,13 +65,19 @@ export class ProjectsService {
   }
 
   // STATISTICS
+  private buildLinkedToMatch(userId: string, projectId?: string) {
+    return projectId
+      ? { userId, 'linkedTo.id': projectId }
+      : { userId, 'linkedTo.kind': LinkedToKind.PROJECT };
+  }
+
   async getTotalTimeLogged(
-    projectId: string,
     userId: string,
+    projectId?: string,
   ): Promise<TotalTimeLogged> {
     const sessions = (await this.sessionModel
       .aggregate([
-        { $match: { userId, 'linkedTo.id': projectId } },
+        { $match: this.buildLinkedToMatch(userId, projectId) },
         {
           $group: { _id: null, totalDuration: { $sum: '$durationInSeconds' } },
         },
@@ -78,11 +91,11 @@ export class ProjectsService {
   }
 
   async getTasksCompleted(
-    projectId: string,
     userId: string,
+    projectId?: string,
   ): Promise<TasksCompleted> {
     const sessions = await this.sessionModel.aggregate([
-      { $match: { userId, 'linkedTo.id': projectId } },
+      { $match: this.buildLinkedToMatch(userId, projectId) },
       { $unwind: '$todos' },
       { $match: { 'todos.completed': true } },
       { $count: 'totalCompleted' },
@@ -92,12 +105,12 @@ export class ProjectsService {
   }
 
   async getSessionFrequencyOverTime(
-    projectId: string,
     userId: string,
     timezone: string,
+    projectId?: string,
   ) {
     const results = await this.sessionModel.aggregate([
-      { $match: { userId, 'linkedTo.id': projectId } },
+      { $match: this.buildLinkedToMatch(userId, projectId) },
       {
         $group: {
           _id: {
@@ -135,14 +148,76 @@ export class ProjectsService {
 
     const [totalTimeLogged, tasksCompleted, sessionFrequencyOverTime] =
       await Promise.all([
-        this.getTotalTimeLogged(id, userId),
-        this.getTasksCompleted(id, userId),
-        this.getSessionFrequencyOverTime(id, userId, timezone),
+        this.getTotalTimeLogged(userId, id),
+        this.getTasksCompleted(userId, id),
+        this.getSessionFrequencyOverTime(userId, timezone, id),
       ]);
     return {
       totalTimeLogged: totalTimeLogged,
       tasksCompleted: tasksCompleted,
       sessionFrequencyOverTime: sessionFrequencyOverTime,
+    };
+  }
+
+  async getTotalProjects(userId: string): Promise<number> {
+    return this.projectModel.countDocuments({ userId }).exec();
+  }
+
+  async getBreakdownByStatus(
+    userId: string,
+  ): Promise<ProjectsStatusBreakdown[]> {
+    const res = await this.projectModel
+      .aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+        { $project: { _id: 0, status: '$_id', count: 1 } },
+      ])
+      .exec();
+
+    return res as ProjectsStatusBreakdown[];
+  }
+
+  async getBreakdownByCategory(
+    userId: string,
+  ): Promise<ProjectsCategoryBreakdown[]> {
+    const res = await this.projectModel
+      .aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $project: { _id: 0, category: '$_id', count: 1 } },
+      ])
+      .exec();
+
+    return res as ProjectsCategoryBreakdown[];
+  }
+
+  async getStatistics(
+    userId: string,
+    timezone: string,
+  ): Promise<ProjectsStatistics> {
+    const [
+      totalProjects,
+      totalTimeLogged,
+      tasksCompleted,
+      breakdownByStatus,
+      breakdownByCategory,
+      sessionActivityOverTime,
+    ] = await Promise.all([
+      this.getTotalProjects(userId),
+      this.getTotalTimeLogged(userId),
+      this.getTasksCompleted(userId),
+      this.getBreakdownByStatus(userId),
+      this.getBreakdownByCategory(userId),
+      this.getSessionFrequencyOverTime(userId, timezone),
+    ]);
+
+    return {
+      totalProjects,
+      totalTimeLogged: totalTimeLogged.totalDuration,
+      totalTasksCompleted: tasksCompleted.totalCompleted,
+      breakdownByStatus,
+      breakdownByCategory,
+      sessionActivityOverTime,
     };
   }
 }

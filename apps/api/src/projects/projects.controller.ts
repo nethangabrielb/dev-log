@@ -26,6 +26,13 @@ export class ProjectsController {
     return this.projectsService.findAll(req.user.userId);
   }
 
+  @Get('statistics')
+  getStatistics(@Req() req: any) {
+    const userId = req.user.userId;
+    const timezone = req.user.timezone || 'Asia/Manila';
+    return this.projectsService.getStatistics(userId, timezone);
+  }
+
   @Get(':id')
   findOne(@Req() req: any, @Param('id') id: string) {
     const userId = req.user.userId;
