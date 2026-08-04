@@ -46,6 +46,7 @@ export function StartSessionDialog({
 }: StartSessionDialogProps) {
   const { startSession } = useActiveSession();
   const [projectId, setProjectId] = useState("");
+  const [projectName, setProjectName] = useState("");
   const [todoInput, setTodoInput] = useState("");
 
   const { data: projects = [] } = useQuery<ProjectOption[]>({
@@ -74,7 +75,6 @@ export function StartSessionDialog({
   });
 
   const type = useWatch({ control, name: "type" });
-
 
   useEffect(() => {
     if (open) {
@@ -155,9 +155,7 @@ export function StartSessionDialog({
               )}
             />
             {errors.type && (
-              <p className="text-xs text-destructive">
-                {errors.type.message}
-              </p>
+              <p className="text-xs text-destructive">{errors.type.message}</p>
             )}
           </div>
 
@@ -167,8 +165,16 @@ export function StartSessionDialog({
                 Linked Project (Optional)
               </label>
               <Select
-                value={projectId}
-                onValueChange={(v) => setProjectId(v ?? "")}
+                value={projectName}
+                onValueChange={(v) => {
+                  setProjectId(v ?? "");
+                  setProjectName(
+                    v
+                      ? projects.find((p) => p._id === v || p.id === v)?.name ||
+                          ""
+                      : "",
+                  );
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="None" />
