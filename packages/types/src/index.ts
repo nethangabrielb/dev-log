@@ -8,5 +8,7 @@ export * from "./interfaces/session.types.js";
 export * from "./interfaces/sessionStatistics.types.js";
 export * from "./interfaces/dsaStatistics.types.js";
 export * from "./interfaces/projectStatistics.types.js";
+export * from "./interfaces/projectsStatistics.types.js";
 export * from "./interfaces/articlesStatistics.types.js";
+export * from "./interfaces/dailyReportStatistics.types.js";
 export * from "./interfaces/dashboard.types.js";
