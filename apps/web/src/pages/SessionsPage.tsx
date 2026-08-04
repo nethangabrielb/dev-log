@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Clock, AlertCircle } from "lucide-react";
 import type { SessionTodo } from "@devlog/types";
 import {
   useSessions,
@@ -16,6 +16,8 @@ import { FilterBar, type FilterValues } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorBoundary } from "../components/common/ErrorBoundary";
 import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Skeleton } from "../components/ui/skeleton";
 import { getApiErrorMessage } from "../lib/apiError";
 
 interface SessionListResponse {
@@ -97,12 +99,22 @@ export function SessionsPage() {
         {/* Session List / Skeleton Loaders / Empty State */}
         <div className="space-y-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2
-                className="h-8 w-8 animate-spin"
-                style={{ color: "var(--devlog-accent)" }}
-              />
-            </div>
+            Array.from({ length: 4 }).map((_, idx) => (
+              <Card key={idx}>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Skeleton className="h-6 w-20 rounded" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Skeleton className="h-6 w-14 rounded" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           ) : !isError && sessions.length === 0 ? (
             <EmptyState
               icon={Clock}

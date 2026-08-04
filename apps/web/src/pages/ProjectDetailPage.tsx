@@ -25,6 +25,7 @@ import { useSessions, useDeleteSession, useUpdateSession } from "@/features/sess
 import { StatCard } from "@/components/common/StatCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { getApiErrorMessage } from "@/lib/apiError";
@@ -130,29 +131,35 @@ export function ProjectDetailPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {loading ? (
-                  <Skeleton className="h-8 w-64" />
+                  <Card className="max-w-xl">
+                    <CardContent className="space-y-3">
+                      <Skeleton className="h-8 w-64" />
+                      <Skeleton className="h-4 w-52" />
+                      <Skeleton className="h-4 w-40" />
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-2xl font-bold tracking-tight">
-                      {project?.name}
-                    </h1>
-                    <span
-                      className="px-2 py-0.5 text-xs font-mono font-medium rounded border shrink-0"
-                      style={{
-                        color: statusColor,
-                        borderColor: statusColor,
-                        backgroundColor: "var(--devlog-bg-elevated)",
-                      }}
-                    >
-                      {status}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h1 className="text-2xl font-bold tracking-tight">
+                        {project?.name}
+                      </h1>
+                      <span
+                        className="px-2 py-0.5 text-xs font-mono font-medium rounded border shrink-0"
+                        style={{
+                          color: statusColor,
+                          borderColor: statusColor,
+                          backgroundColor: "var(--devlog-bg-elevated)",
+                        }}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-1 text-muted-foreground">
+                      {project?.description || project?.category || "No description"}
+                    </p>
+                  </>
                 )}
-                <p className="text-sm mt-1 text-muted-foreground">
-                  {loading
-                    ? "Loading project details..."
-                    : project?.description || project?.category || "No description"}
-                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Button
@@ -179,10 +186,12 @@ export function ProjectDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {loading ? (
                 Array.from({ length: 2 }).map((_, idx) => (
-                  <div key={idx} className="p-4 border border-border rounded-xl space-y-2 bg-bg-surface">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-8 w-32" />
-                  </div>
+                  <Card key={idx}>
+                    <CardContent className="space-y-2">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-8 w-32" />
+                    </CardContent>
+                  </Card>
                 ))
               ) : (
                 <>
@@ -301,16 +310,20 @@ export function ProjectDetailPage() {
               </div>
               {isSessionsLoading ? (
                 Array.from({ length: 3 }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 border border-border rounded-lg flex items-center gap-3 bg-bg-surface"
-                  >
-                    <Skeleton className="h-6 w-20 rounded" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-48" />
-                      <Skeleton className="h-3 w-28" />
-                    </div>
-                  </div>
+                  <Card key={idx}>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Skeleton className="h-6 w-20 rounded" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <Skeleton className="h-6 w-14 rounded" />
+                          <Skeleton className="h-3 w-12" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))
               ) : linkedSessions.length === 0 ? (
                 <EmptyState
