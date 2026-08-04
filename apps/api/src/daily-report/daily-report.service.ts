@@ -4,10 +4,7 @@ import { User, UserDocument } from '../users/schemas/users.schema';
 import { Session, SessionDocument } from '../sessions/schemas/sessions.schema';
 import { DailyReport } from './schema/daily-report.schema';
 import { Model } from 'mongoose';
-import {
-  DailyReportStatistics,
-  DailyReportTypeAggregate,
-} from '@devlog/types';
+import { DailyReportStatistics, DailyReportTypeAggregate } from '@devlog/types';
 
 @Injectable()
 export class DailyReportService {
@@ -67,20 +64,23 @@ export class DailyReportService {
     );
 
     const breakdownBySessionType = Object.values(
-      reports.reduce((acc, report) => {
-        report.breakdownBySessionType.forEach((item) => {
-          if (!acc[item.type]) {
-            acc[item.type] = {
-              type: item.type,
-              durationInSeconds: 0,
-              tasksCompleted: 0,
-            };
-          }
-          acc[item.type].durationInSeconds += item.durationInSeconds;
-          acc[item.type].tasksCompleted += item.tasksCompleted;
-        });
-        return acc;
-      }, {} as Record<string, DailyReportTypeAggregate>),
+      reports.reduce(
+        (acc, report) => {
+          report.breakdownBySessionType.forEach((item) => {
+            if (!acc[item.type]) {
+              acc[item.type] = {
+                type: item.type,
+                durationInSeconds: 0,
+                tasksCompleted: 0,
+              };
+            }
+            acc[item.type].durationInSeconds += item.durationInSeconds;
+            acc[item.type].tasksCompleted += item.tasksCompleted;
+          });
+          return acc;
+        },
+        {} as Record<string, DailyReportTypeAggregate>,
+      ),
     );
 
     return {

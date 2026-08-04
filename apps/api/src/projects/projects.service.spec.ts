@@ -103,12 +103,10 @@ describe('ProjectsService', () => {
     const project = {
       id: 'project-1',
       userId,
-      save: jest
-        .fn()
-        .mockResolvedValue({
-          id: 'project-1',
-          status: ProjectStatus.COMPLETED,
-        }),
+      save: jest.fn().mockResolvedValue({
+        id: 'project-1',
+        status: ProjectStatus.COMPLETED,
+      }),
     };
     model.findById.mockReturnValue(createQueryResult(project));
 

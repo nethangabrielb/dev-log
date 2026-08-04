@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { ProjectsStatistics } from "@devlog/types";
 import {
   projectsApi,
   type CreateProjectDto,
@@ -30,6 +31,13 @@ export function useProjectStats(id?: string) {
     queryKey: keys.projects.stats(id ?? ""),
     queryFn: () => projectsApi.getStats(id ?? ""),
     enabled: !!id,
+  });
+}
+
+export function useProjectsStatistics() {
+  return useQuery<ProjectsStatistics>({
+    queryKey: keys.projects.statsAll(),
+    queryFn: projectsApi.getStatistics,
   });
 }
 

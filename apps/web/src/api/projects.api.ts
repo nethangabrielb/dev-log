@@ -2,6 +2,7 @@ import { client } from "./client";
 import type {
   ProjectCategory,
   ProjectStatus,
+  ProjectsStatistics,
   TasksCompleted,
   TotalTimeLogged,
 } from "@devlog/types";
@@ -51,4 +52,7 @@ export const projectsApi = {
 
   getStats: (id: string) =>
     client.get<ProjectStats>(`/projects/${id}/stats`).then((r) => r.data),
+
+  getStatistics: () =>
+    client.get<ProjectsStatistics>("/projects/statistics").then((r) => r.data),
 };

@@ -20,6 +20,7 @@ export const keys = {
     all: () => ["projects"] as const,
     one: (id: string) => ["projects", id] as const,
     stats: (id: string) => ["projects", id, "stats"] as const,
+    statsAll: () => ["projects", "stats"] as const,
   },
   articles: {
     all: (filters?: object) => ["articles", filters ?? {}] as const,
@@ -31,5 +32,6 @@ export const keys = {
   dailyReports: {
     all: () => ["daily-reports"] as const,
     one: (date: string) => ["daily-reports", date] as const,
+    stats: () => ["daily-reports", "stats"] as const,
   },
 };
