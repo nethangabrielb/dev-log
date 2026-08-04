@@ -7,7 +7,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/common/EmptyState";
 
 export interface DsaBreakdownChartProps {
   title: string;
@@ -37,9 +39,11 @@ export function DsaBreakdownChart({
           <Skeleton className="h-full w-full" />
         </div>
       ) : data.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-10 text-center">
-          No problems recorded yet
-        </p>
+        <EmptyState
+          icon={BarChart3}
+          title="No problems recorded yet"
+          description="Track your first DSA problem to see the breakdown here."
+        />
       ) : (
         <div className="h-64 w-full pt-4">
           <ResponsiveContainer width="100%" height="100%">

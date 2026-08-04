@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Plus, SearchX } from "lucide-react";
 import { ArticleStatus } from "@devlog/types";
 import type { Article } from "@/api/articles.api";
 import { ArticleCard } from "./ArticleCard";
@@ -104,9 +104,11 @@ export function ArticleList({
           }
         />
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-10 text-center border border-dashed border-border rounded-xl bg-bg-surface">
-          No {activeTab.toLowerCase()} articles yet.
-        </p>
+        <EmptyState
+          icon={SearchX}
+          title={`No ${activeTab.toLowerCase()} articles yet`}
+          description="Try a different filter to see your reading list."
+        />
       ) : (
         filtered.map((article) => (
           <ArticleCard

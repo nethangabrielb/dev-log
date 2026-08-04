@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, FileCode } from "lucide-react";
+import { Search, Plus, FileCode, SearchX } from "lucide-react";
 import type { Snippet } from "@/api/snippets.api";
 import { SnippetCard } from "./SnippetCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -102,9 +102,11 @@ export function SnippetGrid({
           }
         />
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-10 text-center border border-dashed border-border rounded-xl bg-bg-surface">
-          No snippets match "{debounced}".
-        </p>
+        <EmptyState
+          icon={SearchX}
+          title={`No snippets match "${debounced}"`}
+          description="Try a different search query or clear the field."
+        />
       ) : (
         <div className={GRID_CLASSES}>
           {filtered.map((snippet) => (

@@ -23,6 +23,7 @@ import { ProjectDialog } from "@/features/projects/components/ProjectDialog";
 import { SessionCard, type SessionData } from "@/features/sessions/components/SessionCard";
 import { useSessions, useDeleteSession, useUpdateSession } from "@/features/sessions/hooks/useSessions";
 import { StatCard } from "@/components/common/StatCard";
+import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
@@ -312,9 +313,11 @@ export function ProjectDetailPage() {
                   </div>
                 ))
               ) : linkedSessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center border border-dashed border-border rounded-xl bg-bg-surface">
-                  No sessions linked to this project yet.
-                </p>
+                <EmptyState
+                  icon={Clock}
+                  title="No sessions linked yet"
+                  description="Log a session against this project to track time here."
+                />
               ) : (
                 linkedSessions.map((session) => (
                   <SessionCard
