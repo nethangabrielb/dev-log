@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { dailyReportsApi, type DailyReport } from "@/api/daily-reports.api";
 import { keys } from "@/lib/queryKeys";
+import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useDailyReports() {
   return useQuery<DailyReport[]>({
@@ -23,7 +25,13 @@ export function useMarkDailyReportRead() {
       );
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Report marked as read");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(
+        getApiErrorMessage(error, "Failed to mark report as read")
+      );
       if (context?.previous !== undefined) {
         qc.setQueryData(keys.dailyReports.all(), context.previous);
       }

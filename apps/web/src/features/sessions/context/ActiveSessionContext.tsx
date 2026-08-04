@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   SessionType,
   type CreateSessionDto,
@@ -15,6 +16,7 @@ import {
   type SessionTodo,
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
+import { getApiErrorMessage } from "@/lib/apiError";
 
 const STORAGE_KEY = "devlog-active-session";
 
@@ -159,6 +161,11 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
 
     try {
       await sessionsApi.create(payload);
+      toast.success("Session logged");
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "Failed to log session")
+      );
     } finally {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });

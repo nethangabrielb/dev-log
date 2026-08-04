@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   dsaApi,
@@ -8,6 +9,7 @@ import {
   type UpdateDsaDto,
 } from "@/api/dsa.api";
 import { keys } from "@/lib/queryKeys";
+import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useDsa(filters?: DsaFilters) {
   return useQuery<DsaRecord[]>({
@@ -45,6 +47,10 @@ export function useCreateDsa() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dsa"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Problem added");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to add problem"));
     },
   });
 }
@@ -64,7 +70,11 @@ export function useUpdateDsa() {
       });
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Problem updated");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to update problem"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }
@@ -83,6 +93,10 @@ export function useDeleteDsa() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dsa"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Problem deleted");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete problem"));
     },
   });
 }

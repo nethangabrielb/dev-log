@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type {
   CreateSessionDto,
   SessionFilters,
@@ -7,6 +8,7 @@ import type {
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { keys } from "@/lib/queryKeys";
+import { getApiErrorMessage } from "@/lib/apiError";
 import type { SessionData } from "@/features/sessions/components/SessionCard";
 
 export interface SessionStreak {
@@ -97,6 +99,10 @@ export function useCreateSession() {
     mutationFn: sessionsApi.create,
     onSuccess: () => {
       refetchSessionsDependents(qc);
+      toast.success("Session created");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to create session"));
     },
   });
 }
@@ -112,7 +118,11 @@ export function useDeleteSession() {
       );
       return context;
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Session deleted");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete session"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }
@@ -142,7 +152,11 @@ export function useUpdateSession() {
       });
       return context;
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Session updated");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to update session"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }

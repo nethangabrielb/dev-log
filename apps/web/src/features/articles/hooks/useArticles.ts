@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ArticleStatus } from "@devlog/types";
 import {
@@ -8,6 +9,7 @@ import {
   type UpdateArticleDto,
 } from "@/api/articles.api";
 import { keys } from "@/lib/queryKeys";
+import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useArticles() {
   return useQuery<Article[]>({
@@ -64,7 +66,11 @@ export function useCreateArticle() {
       }
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Article added");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to add article"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }
@@ -90,7 +96,11 @@ export function useUpdateArticle() {
       });
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Article updated");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to update article"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }
@@ -113,7 +123,11 @@ export function useDeleteArticle() {
       );
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: () => {
+      toast.success("Article deleted");
+    },
+    onError: (error, _vars, context) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete article"));
       for (const [queryKey, data] of context?.previous ?? []) {
         qc.setQueryData(queryKey, data);
       }

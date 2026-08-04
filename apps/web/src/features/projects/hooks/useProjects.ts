@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   projectsApi,
   type CreateProjectDto,
@@ -7,6 +8,7 @@ import {
   type UpdateProjectDto,
 } from "@/api/projects.api";
 import { keys } from "@/lib/queryKeys";
+import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useProjects() {
   return useQuery<Project[]>({
@@ -38,6 +40,10 @@ export function useCreateProject() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Project created");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to create project"));
     },
   });
 }
@@ -50,6 +56,10 @@ export function useUpdateProject() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Project updated");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to update project"));
     },
   });
 }
@@ -61,6 +71,10 @@ export function useDeleteProject() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Project deleted");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete project"));
     },
   });
 }
