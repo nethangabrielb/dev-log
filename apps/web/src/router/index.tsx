@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { ErrorBoundary } from "../components/common/ErrorBoundary";
 import { ActiveSessionProvider } from "../features/sessions/context/ActiveSessionContext";
 import { AppShell } from "../components/layout/AppShell";
 import { DashboardPage } from "../pages/DashboardPage";
@@ -23,9 +24,11 @@ export function AppRouter() {
       <Route element={<ProtectedRoute />}>
         <Route
           element={
-            <ActiveSessionProvider>
-              <AppShell />
-            </ActiveSessionProvider>
+            <ErrorBoundary>
+              <ActiveSessionProvider>
+                <AppShell />
+              </ActiveSessionProvider>
+            </ErrorBoundary>
           }
         >
           <Route path="/" element={<DashboardPage />} />

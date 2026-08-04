@@ -51,10 +51,10 @@ export class ErrorBoundary extends Component<Props, State> {
               "An unexpected error occurred while rendering this page."}
           </p>
           <Button
-            onClick={() => this.setState({ hasError: false, error: undefined })}
+            onClick={() => window.location.reload()}
             className="bg-accent text-accent-fg hover:bg-accent-dim"
           >
-            Try Again
+            Reload
           </Button>
         </div>
       );
