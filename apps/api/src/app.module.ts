@@ -15,6 +15,7 @@ import { ArticlesModule } from './articles/articles.module';
 import { DailyReportModule } from './daily-report/daily-report.module';
 import { BullModule } from '@nestjs/bullmq';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -26,6 +27,18 @@ import { DashboardModule } from './dashboard/dashboard.module';
         port: parseInt(process.env.REDIS_PORT!, 10),
       },
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000,
+        limit: 100,
+      },
+      {
+        name: 'burst',
+        ttl: 10000,
+        limit: 20,
+      },
+    ]),
     SessionsModule,
     DsaModule,
     SnippetsModule,
@@ -37,6 +50,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DashboardModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}

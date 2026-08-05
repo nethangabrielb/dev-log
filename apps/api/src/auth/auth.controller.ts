@@ -21,6 +21,7 @@ import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
 import { Public } from './decorators/public.decorator';
 import { normalizeTimezone } from '../common/timezone.util';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +32,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('/register')
   async register(@Body() body: CreateUserDto) {
     if (!body.password) {
@@ -60,6 +62,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(LocalAuthGuard)
   @HttpCode(200)
   @Post('/login')
