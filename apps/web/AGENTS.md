@@ -1,42 +1,32 @@
-# Frontend Rules
+# Web Rules
 
-## Stack
+React 19 + Vite + TS. TanStack Query v5, React Router v7, React Hook Form + Zod, shadcn/ui + Tailwind v4, Recharts, Axios. Dark mode only.
 
-React 19 + Vite + TypeScript. TanStack Query v5, React Router v7,
-React Hook Form + Zod, shadcn/ui + Tailwind, Recharts, date-fns, Axios.
+## Essential Commands
 
-## Conventions
+- `pnpm --filter web dev` — Vite on `:5173`
+- `pnpm --filter web build` — `tsc -b && vite build`
+- `pnpm --filter web lint` — `eslint .`
+- Shared types come from `@devlog/types` (rebuild at root: `pnpm build:types`)
 
-### Types
-Import enums/interfaces from `@devlog/types`. Never redefine locally.
+## Architecture
 
-### API layer
-- Client: `src/api/client.ts` (Axios, withCredentials, 401 → /login)
-- Per-resource: `src/api/<name>.api.ts` — exported object of async functions
-- Never call Axios directly in components or hooks
-
-### State
-- Query keys: `src/lib/queryKeys.ts` factory only
-- Hooks: `src/features/<name>/hooks/` — wrap all queries
-- Pages import hooks, never `useQuery` directly
-
-### Styling
-- Dark mode only. CSS variables in index.css, never hardcode hex.
-- Tokens prefixed `--devlog-*` (not shadcn's `--accent`, `--border`, etc.)
-- Accent: `--devlog-accent` (#c9762f terminal amber)
-- Fonts: Geist body, IBM Plex Mono for data/numbers
-- No inline styles. No Tailwind color utilities for branded elements.
-- Flat fill buttons, no gradients. Focus rings at low opacity.
-
-### Folder structure
 - `src/pages/` — thin route wrappers only
-- `src/features/<name>/` — components, hooks, schemas per resource
-- `src/components/ui/` — shadcn-generated, do not hand-edit
+- `src/features/<name>/` — per-resource components, hooks, schemas; `hooks/` wrap queries
+- `src/components/` — cross-cutting shared; `src/components/ui/` — shadcn-generated, do not hand-edit
+- `src/api/<resource>.api.ts` — plain async modules over shared `src/api/client.ts` (withCredentials; 401 interceptor → /login)
+- `src/lib/queryKeys.ts` — query key factory; no inline query keys
 
-## Skills
+## Rules
 
-7 skills in `.agents/skills/`. They auto-trigger on task description.
-Use them for: API/query patterns, design tokens, forms, sessions model,
-shadcn/ui, recharts, react-hook-form + zod.
+- Never call `useQuery`/`useMutation`/Axios in pages or components — wrap in a feature hook
+- Mutations invalidate the ENTIRE resource key family (plus `['dashboard']`), not one query
+- Use `--devlog-*` tokens only; never Tailwind color utilities or raw hex. Accent = `--devlog-accent` (#c9762f)
+- Zod schemas live in `src/features/<name>/schemas/` and mirror backend DTOs field-for-field
+- RHF+Zod forms: Projects, Articles, Snippets, Auth ONLY. Sessions have NO form and NO title/notes — start/stop timer only
+- Load the matching skill before writing related code — auto-triggered: devlog-api-query-pattern, devlog-design-tokens, devlog-forms-pattern, devlog-sessions-model
 
-Full page specs: `docs/FRONTEND.md` (use when building a page from scratch).
+## References
+
+- Full spec and design system: `docs/FRONTEND.md`
+- Verify: `pnpm lint` after changes
