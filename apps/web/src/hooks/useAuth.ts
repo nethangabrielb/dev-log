@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { authApi } from "../api/auth.api";
 import { keys } from "../lib/queryKeys";
+import { getApiErrorMessage } from "../lib/apiError";
 
 export function useAuth() {
   const query = useQuery({
@@ -15,4 +17,18 @@ export function useAuth() {
     isLoading: query.isLoading,
     isAuthenticated: !!query.data,
   };
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+      queryClient.clear();
+      toast.success("Logged out");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to log out"));
+    },
+  });
 }

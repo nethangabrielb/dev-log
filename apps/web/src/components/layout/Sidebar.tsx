@@ -8,8 +8,11 @@ import {
   FileCode,
   ClipboardList,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth, useLogout } from "@/hooks/useAuth";
 
 interface NavItem {
   to: string;
@@ -47,6 +50,9 @@ const navGroups: NavGroup[] = [
 ];
 
 export function Sidebar() {
+  const { user } = useAuth();
+  const { mutate: logout, isPending } = useLogout();
+
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-56 border-r border-border bg-bg-surface flex flex-col z-30">
       <div className="h-14 flex items-center px-6 border-b border-border">
@@ -85,6 +91,25 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+      <footer className="p-3 border-t border-border space-y-1">
+        <div className="px-3 py-1 overflow-hidden">
+          <p className="text-sm font-semibold truncate text-text-primary">
+            {user?.username ?? "User"}
+          </p>
+          <p className="text-xs truncate text-text-muted">
+            {user?.email ?? ""}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 px-3 text-sm font-medium rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+          onClick={() => logout()}
+          disabled={isPending}
+        >
+          <LogOut className="h-4 w-4" />
+          <span>{isPending ? "Logging out..." : "Log out"}</span>
+        </Button>
+      </footer>
     </aside>
   );
 }
