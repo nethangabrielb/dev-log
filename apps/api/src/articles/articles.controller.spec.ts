@@ -70,8 +70,13 @@ describe('ArticlesController', () => {
     const articles = [{ id: 'article-1' }];
     service.findAll.mockResolvedValue(articles);
 
-    await expect(controller.findAll(req)).resolves.toEqual(articles);
-    expect(service.findAll).toHaveBeenCalledWith('user-1');
+    await expect(
+      controller.findAll(req, { page: 1, limit: 20 }),
+    ).resolves.toEqual(articles);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should return article statistics from the service', async () => {

@@ -31,8 +31,7 @@ export function ArticlesPage() {
   const [editing, setEditing] = useState<Article | null>(null);
 
   const articles = useMemo<Article[]>(() => {
-    if (Array.isArray(rawArticles)) return rawArticles;
-    return [];
+    return rawArticles?.data ?? [];
   }, [rawArticles]);
 
   const handleCreate = (values: ArticleFormValues) => {

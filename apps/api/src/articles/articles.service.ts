@@ -16,6 +16,8 @@ import {
 } from '@devlog/types';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionType } from '@devlog/types';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
+import { buildPaginatedResult } from '../common/pagination.util';
 
 @Injectable()
 export class ArticlesService {
@@ -28,8 +30,19 @@ export class ArticlesService {
     return this.articleModel.create({ ...createArticleDto, userId });
   }
 
-  async findAll(userId: string) {
-    return this.articleModel.find({ userId }).exec();
+  async findAll(userId: string, pagination: Partial<PaginationQueryDto> = {}) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const filter = { userId };
+    const [data, total] = await Promise.all([
+      this.articleModel
+        .find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.articleModel.countDocuments(filter),
+    ]);
+    return buildPaginatedResult(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

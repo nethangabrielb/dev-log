@@ -1,4 +1,5 @@
 import { client } from "./client";
+import type { Paginated, Pagination } from "./pagination";
 import type {
   ArticleCategory,
   ArticleStatus,
@@ -29,7 +30,8 @@ export interface CreateArticleDto {
 export type UpdateArticleDto = Partial<CreateArticleDto>;
 
 export const articlesApi = {
-  findAll: () => client.get<Article[]>("/articles").then((r) => r.data),
+  findAll: (pagination?: Pagination) =>
+    client.get<Paginated<Article>>("/articles", { params: pagination }).then((r) => r.data),
 
   findOne: (id: string) =>
     client.get<Article>(`/articles/${id}`).then((r) => r.data),

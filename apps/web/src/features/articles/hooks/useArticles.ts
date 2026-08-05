@@ -8,13 +8,14 @@ import {
   type CreateArticleDto,
   type UpdateArticleDto,
 } from "@/api/articles.api";
+import type { Paginated } from "@/api/pagination";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useArticles() {
-  return useQuery<Article[]>({
+  return useQuery<Paginated<Article>>({
     queryKey: keys.articles.all(),
-    queryFn: articlesApi.findAll,
+    queryFn: () => articlesApi.findAll(),
   });
 }
 
