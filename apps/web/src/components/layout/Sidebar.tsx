@@ -30,7 +30,7 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     items: [
-      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
       { to: "/sessions", label: "Sessions", icon: Clock, end: true },
       { to: "/dsa", label: "DSA", icon: Code2 },
       { to: "/projects", label: "Projects", icon: FolderKanban },

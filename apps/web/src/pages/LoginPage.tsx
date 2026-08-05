@@ -39,7 +39,7 @@ export function LoginPage() {
     try {
       await authApi.login(data);
       await queryClient.invalidateQueries({ queryKey: keys.auth.profile() });
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError(getApiErrorMessage(err, "Invalid credentials. Please try again."));
     }

@@ -17,10 +17,12 @@ import { ArticlesOverviewPage } from "../pages/ArticlesOverviewPage";
 import { DsaOverviewPage } from "../pages/DsaOverviewPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
+import { LandingPage } from "../pages/LandingPage";
 
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
@@ -34,7 +36,7 @@ export function AppRouter() {
             </ErrorBoundary>
           }
         >
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/sessions/overview" element={<SessionsOverviewPage />} />
           <Route path="/dsa" element={<DSAPage />} />
