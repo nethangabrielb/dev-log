@@ -3,6 +3,7 @@ import type { Snippet } from "@/api/snippets.api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LANGUAGE_COLOR, CATEGORY_COLOR } from "./snippetColors";
+import { SnippetCodeBlock } from "./SnippetCodeBlock";
 
 export interface SnippetCardProps {
   snippet: Snippet;
@@ -56,19 +57,13 @@ export function SnippetCard({
           </span>
         </div>
 
-        <pre
-          className="flex-1 p-3 rounded-lg border border-border overflow-hidden text-xs leading-relaxed"
-          style={{
-            fontFamily: "var(--font-mono)",
-            backgroundColor: "var(--devlog-bg-elevated)",
-            color: "var(--devlog-text-secondary)",
-            maxHeight: "9rem",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
-          {snippet.content}
-        </pre>
+        <SnippetCodeBlock
+          code={snippet.content}
+          language={snippet.language}
+          maxHeight="24rem"
+          wrap
+          showCopy
+        />
 
         <div className="flex items-center justify-between gap-3 pt-1">
           {snippet.description ? (

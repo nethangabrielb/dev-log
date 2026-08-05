@@ -171,9 +171,9 @@ Searchable code snippet library.
 `POST /snippets`, `PATCH /snippets/:id`, `DELETE /snippets/:id`
 
 **Layout:** Debounced search input → snippet cards (language badge,
-category, title, truncated `<pre>` code preview).
+category, title, scrollable `SnippetCodeBlock` code preview).
 Full snippet expands in a Sheet or Dialog.
-No syntax highlighter on first pass — styled `<pre>` with IBM Plex Mono.
+Syntax highlighting powered by Shiki (v4) with custom DevLog dark theme (`devlogTheme`), loaded asynchronously via dynamic imports, with built-in copy-to-clipboard button UX.
 
 ---
 

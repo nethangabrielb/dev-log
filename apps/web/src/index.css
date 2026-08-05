@@ -134,7 +134,12 @@
     flex-direction: column;
   }
   code,
-  .mono {
+  .mono,
+  .shiki {
     font-family: var(--font-mono);
+  }
+
+  .shiki {
+    background-color: transparent !important;
   }
 }

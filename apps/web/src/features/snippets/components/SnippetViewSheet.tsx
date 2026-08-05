@@ -6,6 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { LANGUAGE_COLOR, CATEGORY_COLOR } from "./snippetColors";
+import { SnippetCodeBlock } from "./SnippetCodeBlock";
 
 export interface SnippetViewSheetProps {
   snippet: Snippet | null;
@@ -58,17 +59,11 @@ export function SnippetViewSheet({
                 </p>
               )}
 
-              <pre
-                className="p-4 rounded-lg border border-border overflow-x-auto text-xs leading-relaxed"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  backgroundColor: "var(--devlog-bg-elevated)",
-                  color: "var(--devlog-text-primary)",
-                  whiteSpace: "pre",
-                }}
-              >
-                {snippet.content}
-              </pre>
+              <SnippetCodeBlock
+                code={snippet.content}
+                language={snippet.language}
+                showCopy
+              />
 
               {snippet.tags && snippet.tags.length > 0 && (
                 <ul className="flex flex-wrap gap-1.5 mt-4">
