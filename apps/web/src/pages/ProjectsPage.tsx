@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
+import { ProjectStatus } from "@devlog/types";
 import type { Project } from "@/api/projects.api";
 import {
   useProjects,
@@ -8,6 +9,7 @@ import {
   useDeleteProject,
 } from "@/features/projects/hooks/useProjects";
 import { ProjectsGrid } from "@/features/projects/components/ProjectsGrid";
+import { ProjectFilterBar } from "@/features/projects/components/ProjectFilterBar";
 import { ProjectSheet } from "@/features/projects/components/ProjectSheet";
 import { ProjectDialog } from "@/features/projects/components/ProjectDialog";
 import type { ProjectFormValues } from "@/features/projects/schemas/project.schema";
@@ -26,9 +28,59 @@ export function ProjectsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
 
-  const projects = useMemo<Project[]>(() => {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+
+  const rawProjectsList = useMemo<Project[]>(() => {
     return rawProjects?.data ?? [];
   }, [rawProjects]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      All: rawProjectsList.length,
+      [ProjectStatus.ACTIVE]: 0,
+      [ProjectStatus.PAUSED]: 0,
+      [ProjectStatus.COMPLETED]: 0,
+      [ProjectStatus.ARCHIVED]: 0,
+    };
+    for (const proj of rawProjectsList) {
+      if (proj.status && counts[proj.status] !== undefined) {
+        counts[proj.status]++;
+      }
+    }
+    return counts;
+  }, [rawProjectsList]);
+
+  const filteredProjects = useMemo<Project[]>(() => {
+    return rawProjectsList.filter((project) => {
+      // 1. Status filter check
+      if (statusFilter !== "All" && project.status !== statusFilter) {
+        return false;
+      }
+
+      // 2. Search query check (name, description, category, tags)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = project.name?.toLowerCase().includes(q);
+        const matchDesc = project.description?.toLowerCase().includes(q);
+        const matchCategory = project.category?.toLowerCase().includes(q);
+        const matchTags = project.tags?.some((tag) =>
+          tag.toLowerCase().includes(q)
+        );
+
+        return Boolean(matchName || matchDesc || matchCategory || matchTags);
+      }
+
+      return true;
+    });
+  }, [rawProjectsList, statusFilter, searchQuery]);
+
+  const isFiltered = searchQuery !== "" || statusFilter !== "All";
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("All");
+  };
 
   const handleCreate = (values: ProjectFormValues) => {
     createProject(values, { onSuccess: () => setIsSheetOpen(false) });
@@ -80,12 +132,22 @@ export function ProjectsPage() {
           </div>
         )}
 
+        <ProjectFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedStatus={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusCounts={statusCounts}
+        />
+
         <ProjectsGrid
-          projects={projects}
+          projects={filteredProjects}
           loading={isLoading}
           onEdit={setEditing}
           onDelete={handleDelete}
           onAdd={() => setIsSheetOpen(true)}
+          onResetFilters={handleResetFilters}
+          isFiltered={isFiltered}
         />
 
         <ProjectSheet

@@ -131,7 +131,7 @@ Browse projects; view one project's details and linked sessions.
 **Data:** `GET /projects`, `GET /projects/:id`,
 `GET /projects/:id/statistics`
 
-**List:** Grid of project cards — name, status badge, category, totalTimeLogged.
+**List:** Search input + status filter tabs (All, Active, Paused, Completed, Archived with counts) → Grid of project cards (name, status badge, category, totalTimeLogged).
 
 **Detail:** Project header → stat cards (totalTime, tasksCompleted) →
 session frequency area chart (14-day) → linked sessions list.

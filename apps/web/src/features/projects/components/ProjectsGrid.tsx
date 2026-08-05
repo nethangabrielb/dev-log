@@ -1,4 +1,4 @@
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, SearchX } from "lucide-react";
 import type { Project } from "@/api/projects.api";
 import { ProjectCard } from "./ProjectCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -11,6 +11,8 @@ export interface ProjectsGridProps {
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
   onAdd: () => void;
+  onResetFilters?: () => void;
+  isFiltered?: boolean;
 }
 
 const GRID_CLASSES =
@@ -22,6 +24,8 @@ export function ProjectsGrid({
   onEdit,
   onDelete,
   onAdd,
+  onResetFilters,
+  isFiltered = false,
 }: ProjectsGridProps) {
   if (loading) {
     return (
@@ -42,6 +46,25 @@ export function ProjectsGrid({
   }
 
   if (projects.length === 0) {
+    if (isFiltered && onResetFilters) {
+      return (
+        <EmptyState
+          icon={SearchX}
+          title="No matching projects"
+          description="Try adjusting your search query or status filter to see your projects."
+          action={
+            <Button
+              onClick={onResetFilters}
+              variant="outline"
+              size="sm"
+            >
+              Clear filters
+            </Button>
+          }
+        />
+      );
+    }
+
     return (
       <EmptyState
         icon={FolderKanban}
