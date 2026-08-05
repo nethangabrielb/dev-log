@@ -2,9 +2,7 @@
 
 DevLog is a self-hosted developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
 
-![Screenshot of the DevLog dashboard](link-to-screenshot.png)
-
-🔗 **Live Demo:** [https://devlog.example.com](https://devlog.example.com) | 📹 **Video Walkthrough:** [https://www.youtube.com/watch?v=...](https://www.youtube.com/watch?v=...)
+🔗 **Live Demo:** To be deployed
 
 ## Features
 
