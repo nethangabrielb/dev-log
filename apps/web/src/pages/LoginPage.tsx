@@ -8,6 +8,7 @@ import {
   type LoginInput,
 } from "../features/auth/schemas/auth.schema";
 import { authApi } from "../api/auth.api";
+import { GoogleLoginButton } from "../components/common/GoogleLoginButton";
 import {
   Card,
   CardHeader,
@@ -110,6 +111,15 @@ export function LoginPage() {
               {isSubmitting ? "Logging in..." : "Log in"}
             </Button>
           </form>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-text-muted">or</span>
+            </div>
+          </div>
+          <GoogleLoginButton />
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">

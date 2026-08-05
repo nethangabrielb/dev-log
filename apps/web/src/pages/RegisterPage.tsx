@@ -18,6 +18,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { getApiErrorMessage } from "../lib/apiError";
+import { GoogleLoginButton } from "../components/common/GoogleLoginButton";
 import {
   Select,
   SelectTrigger,
@@ -190,6 +191,15 @@ export function RegisterPage() {
               {isSubmitting ? "Creating account..." : "Register"}
             </Button>
           </form>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-text-muted">or</span>
+            </div>
+          </div>
+          <GoogleLoginButton />
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">

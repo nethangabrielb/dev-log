@@ -19,4 +19,12 @@ export class UsersService {
       $or: [{ email: identifier }, { username: identifier }],
     });
   }
+
+  async findByGoogleId(googleId: string) {
+    return this.userModel.findOne({ googleId });
+  }
+
+  async setGoogleId(userId: string, googleId: string) {
+    return this.userModel.updateOne({ _id: userId }, { $set: { googleId } });
+  }
 }

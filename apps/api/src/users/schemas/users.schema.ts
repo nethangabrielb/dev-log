@@ -17,6 +17,12 @@ export class User {
 
   @Prop({ type: String, default: 'Asia/Manila' })
   timezone?: string;
+
+  @Prop({ type: String, enum: ['local', 'google'], default: 'local' })
+  provider!: string;
+
+  @Prop()
+  googleId?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { UserDocument } from '../users/schemas/users.schema';
+import type { Profile } from 'passport-google-oauth20';
 
 @Injectable()
 export class AuthService {
@@ -40,5 +41,33 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async validateOAuthUser(profile: Profile): Promise<UserDocument | null> {
+    const email = profile.emails?.[0]?.value;
+
+    let user = await this.usersService.findByGoogleId(profile.id);
+    if (user) {
+      return user;
+    }
+
+    if (email) {
+      user = await this.usersService.findByIdentifier(email);
+      if (user) {
+        await this.usersService.setGoogleId(user._id.toString(), profile.id);
+        return user;
+      }
+
+      const username =
+        profile.username || email.split('@')[0] || `user_${profile.id}`;
+      return this.usersService.create({
+        username,
+        email,
+        provider: 'google',
+        googleId: profile.id,
+      });
+    }
+
+    return null;
   }
 }
