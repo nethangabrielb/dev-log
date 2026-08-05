@@ -2,9 +2,7 @@
 
 DevLog is a self-hosted developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
 
-![Screenshot of the DevLog dashboard](link-to-screenshot.png)
-
-🔗 **Live Demo:** [https://devlog.example.com](https://devlog.example.com) | 📹 **Video Walkthrough:** [https://www.youtube.com/watch?v=...](https://www.youtube.com/watch?v=...)
+🔗 **Live Demo:** To be deployed
 
 ## Features
 
@@ -20,10 +18,10 @@ DevLog is a self-hosted developer activity tracker that logs time sessions again
 
 ## Tech Stack
 
-**Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, React Hook Form + Zod, Recharts, shadcn/ui
-**Backend:** Node.js, NestJS (REST), Mongoose, Passport (JWT + Google OAuth), BullMQ
-**Database:** MongoDB
-**Other:** Redis (BullMQ), Axios, pnpm workspaces, Vercel (SPA deployment)
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, React Hook Form + Zod, Recharts, shadcn/ui
+- **Backend:** Node.js, NestJS (REST), Mongoose, Passport (JWT + Google OAuth), BullMQ
+- **Database:** MongoDB
+- **Other:** Redis (BullMQ), Axios, pnpm workspaces, Vercel (SPA deployment)
 
 ## Architecture
 
@@ -41,12 +39,14 @@ The API is organized into per-resource NestJS modules (`projects`, `articles`, `
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
 - pnpm 10+
 - MongoDB (local or via `docker run -p 27017:27017 mongo`)
 - Redis (local or via `docker run -p 6379:6379 redis`)
 
 ### Installation
+
 ```bash
 git clone https://github.com/you/dev-log.git
 cd dev-log
@@ -55,7 +55,9 @@ pnpm build:types   # build the shared @devlog/types package
 ```
 
 ### Environment Variables
+
 Copy the example files into place and fill them in:
+
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
@@ -74,15 +76,18 @@ VITE_API_URL=http://localhost:3000
 ```
 
 ### Running Locally
+
 ```bash
 docker run -d -p 27017:27017 mongo
 docker run -d -p 6379:6379 redis
 pnpm dev
 ```
+
 - API → `http://localhost:3000`
 - Web → `http://localhost:5173`
 
 ## Project Structure
+
 ```
 apps/
   web/       # React 19 + Vite + Tailwind SPA (pages, features, hooks, api modules)
@@ -94,7 +99,7 @@ packages/
 ## Challenges & Learnings
 
 - **One source of truth across two apps.** Both the web client and the API need the same DTO shapes and enums (session types, DSA patterns, difficulty levels). Keeping them in a shared `packages/types` workspace package means a backend validation change is typed everywhere at once — no drift between "what the server validates" and "what the client assumes."
-- **Timezone-aware statistics.** Daily aggregates had to respect the *user's* timezone, not the server's. The user's timezone rides along in the JWT and is threaded into queries, and day boundaries are computed with timezone-normalized dates (`fromZonedTime`) so a day's data doesn't leak across midnight boundaries.
+- **Timezone-aware statistics.** Daily aggregates had to respect the _user's_ timezone, not the server's. The user's timezone rides along in the JWT and is threaded into queries, and day boundaries are computed with timezone-normalized dates (`fromZonedTime`) so a day's data doesn't leak across midnight boundaries.
 - **Deleting data without orphaning references.** Sessions can point at a project via `linkedTo`; deleting that project used to leave dangling references that inflated statistics. The fix unlinks sessions in the same `remove()` call before deleting the project — small enough that a transaction wasn't needed.
 - **Paginating every list endpoint consistently.** All five `findAll` endpoints (sessions, DSA, projects, articles, snippets) now return the same `{ data, total, page, limit, totalPages }` contract via a shared DTO and helper — so the frontend handles one response shape everywhere.
 - **Never lose tracked time.** The active-session timer persists to `localStorage` and is only cleared after the "stop" request succeeds. If the API is down when you hit stop, the timer keeps running and surfaces the error — no more silently losing a 2-hour session to a network blip.
