@@ -4,7 +4,6 @@ import { User, UserDocument } from '../users/schemas/users.schema';
 import { Session, SessionDocument } from '../sessions/schemas/sessions.schema';
 import { DailyReport } from './schema/daily-report.schema';
 import { Model } from 'mongoose';
-import { DailyReportStatistics, DailyReportTypeAggregate } from '@devlog/types';
 
 @Injectable()
 export class DailyReportService {
@@ -35,65 +34,6 @@ export class DailyReportService {
       .findOneAndUpdate({ userId, date }, { isRead: true }, { new: true })
       .exec();
     return dailyReport;
-  }
-
-  async getStatistics(userId: string): Promise<DailyReportStatistics> {
-    const reports = await this.dailyReportModel
-      .find({ userId })
-      .sort({ date: 1 })
-      .exec();
-
-    if (!reports.length) {
-      return {
-        totalReports: 0,
-        totalTimeLogged: 0,
-        totalTasksCompleted: 0,
-        averageTimePerDay: 0,
-        timeLoggedOverTime: [],
-        breakdownBySessionType: [],
-      };
-    }
-
-    const totalTimeLogged = reports.reduce(
-      (sum, report) => sum + report.totalTimeLogged,
-      0,
-    );
-    const totalTasksCompleted = reports.reduce(
-      (sum, report) => sum + report.totalTasksCompleted,
-      0,
-    );
-
-    const breakdownBySessionType = Object.values(
-      reports.reduce(
-        (acc, report) => {
-          report.breakdownBySessionType.forEach((item) => {
-            if (!acc[item.type]) {
-              acc[item.type] = {
-                type: item.type,
-                durationInSeconds: 0,
-                tasksCompleted: 0,
-              };
-            }
-            acc[item.type].durationInSeconds += item.durationInSeconds;
-            acc[item.type].tasksCompleted += item.tasksCompleted;
-          });
-          return acc;
-        },
-        {} as Record<string, DailyReportTypeAggregate>,
-      ),
-    );
-
-    return {
-      totalReports: reports.length,
-      totalTimeLogged,
-      totalTasksCompleted,
-      averageTimePerDay: Math.round(totalTimeLogged / reports.length),
-      timeLoggedOverTime: reports.map((report) => ({
-        date: report.date,
-        totalDuration: report.totalTimeLogged,
-      })),
-      breakdownBySessionType,
-    };
   }
 
   private async getUserSesionsForToday(

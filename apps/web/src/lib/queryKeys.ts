@@ -32,6 +32,5 @@ export const keys = {
   dailyReports: {
     all: () => ["daily-reports"] as const,
     one: (date: string) => ["daily-reports", date] as const,
-    stats: () => ["daily-reports", "stats"] as const,
   },
 };

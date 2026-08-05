@@ -42,11 +42,6 @@ const navGroups: NavGroup[] = [
       { to: "/projects/overview", label: "Projects Overview", icon: FolderKanban },
       { to: "/articles/overview", label: "Articles Overview", icon: BookOpen },
       { to: "/dsa/overview", label: "DSA Overview", icon: Code2 },
-      {
-        to: "/daily-reports/overview",
-        label: "Daily Reports Overview",
-        icon: ClipboardList,
-      },
     ],
   },
 ];

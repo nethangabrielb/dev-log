@@ -10,5 +10,4 @@ export * from "./interfaces/dsaStatistics.types.js";
 export * from "./interfaces/projectStatistics.types.js";
 export * from "./interfaces/projectsStatistics.types.js";
 export * from "./interfaces/articlesStatistics.types.js";
-export * from "./interfaces/dailyReportStatistics.types.js";
 export * from "./interfaces/dashboard.types.js";

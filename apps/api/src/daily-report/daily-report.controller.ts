@@ -11,12 +11,6 @@ export class DailyReportController {
     return this.dailyReportService.findAll(userId);
   }
 
-  @Get('statistics')
-  getStatistics(@Req() req: any) {
-    const userId = req.user.userId;
-    return this.dailyReportService.getStatistics(userId);
-  }
-
   @Get(':date')
   findOne(@Req() req: any, @Param('date') date: string) {
     const userId = req.user.userId;

@@ -1,5 +1,4 @@
 import { client } from "./client";
-import type { DailyReportStatistics } from "@devlog/types";
 
 export interface DailyReportBreakdown {
   type: string;
@@ -29,7 +28,4 @@ export const dailyReportsApi = {
 
   markAsRead: (date: string) =>
     client.patch<DailyReport>(`/daily-report/${date}/read`).then((r) => r.data),
-
-  getStatistics: () =>
-    client.get<DailyReportStatistics>("/daily-report/statistics").then((r) => r.data),
 };

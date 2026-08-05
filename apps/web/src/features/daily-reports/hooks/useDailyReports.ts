@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { DailyReportStatistics } from "@devlog/types";
 import { dailyReportsApi, type DailyReport } from "@/api/daily-reports.api";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
@@ -9,13 +8,6 @@ export function useDailyReports() {
   return useQuery<DailyReport[]>({
     queryKey: keys.dailyReports.all(),
     queryFn: dailyReportsApi.findAll,
-  });
-}
-
-export function useDailyReportStatistics() {
-  return useQuery<DailyReportStatistics>({
-    queryKey: keys.dailyReports.stats(),
-    queryFn: dailyReportsApi.getStatistics,
   });
 }
 

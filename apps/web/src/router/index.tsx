@@ -15,7 +15,6 @@ import { DailyReportsPage } from "../pages/DailyReportsPage";
 import { ProjectsOverviewPage } from "../pages/ProjectsOverviewPage";
 import { ArticlesOverviewPage } from "../pages/ArticlesOverviewPage";
 import { DsaOverviewPage } from "../pages/DsaOverviewPage";
-import { DailyReportsOverviewPage } from "../pages/DailyReportsOverviewPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 
@@ -47,10 +46,6 @@ export function AppRouter() {
           <Route path="/articles/overview" element={<ArticlesOverviewPage />} />
           <Route path="/snippets" element={<SnippetsPage />} />
           <Route path="/daily-reports" element={<DailyReportsPage />} />
-          <Route
-            path="/daily-reports/overview"
-            element={<DailyReportsOverviewPage />}
-          />
         </Route>
       </Route>
     </Routes>
