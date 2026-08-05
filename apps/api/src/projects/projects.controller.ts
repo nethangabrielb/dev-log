@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -22,8 +24,8 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(@Req() req: any) {
-    return this.projectsService.findAll(req.user.userId);
+  findAll(@Req() req: any, @Query() pagination: PaginationQueryDto) {
+    return this.projectsService.findAll(req.user.userId, pagination);
   }
 
   @Get('statistics')

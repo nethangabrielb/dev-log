@@ -27,8 +27,7 @@ export function ProjectsPage() {
   const [editing, setEditing] = useState<Project | null>(null);
 
   const projects = useMemo<Project[]>(() => {
-    if (Array.isArray(rawProjects)) return rawProjects;
-    return [];
+    return rawProjects?.data ?? [];
   }, [rawProjects]);
 
   const handleCreate = (values: ProjectFormValues) => {

@@ -77,8 +77,13 @@ describe('ProjectsController', () => {
     const projects = [{ id: 'project-1' }, { id: 'project-2' }];
     service.findAll.mockResolvedValue(projects);
 
-    await expect(controller.findAll(req)).resolves.toEqual(projects);
-    expect(service.findAll).toHaveBeenCalledWith('user-1');
+    await expect(
+      controller.findAll(req, { page: 1, limit: 20 }),
+    ).resolves.toEqual(projects);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should return a single project from the service', async () => {

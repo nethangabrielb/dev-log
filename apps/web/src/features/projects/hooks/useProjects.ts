@@ -8,13 +8,14 @@ import {
   type ProjectStats,
   type UpdateProjectDto,
 } from "@/api/projects.api";
+import type { Paginated } from "@/api/pagination";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useProjects() {
-  return useQuery<Project[]>({
+  return useQuery<Paginated<Project>>({
     queryKey: keys.projects.all(),
-    queryFn: projectsApi.findAll,
+    queryFn: () => projectsApi.findAll(),
   });
 }
 

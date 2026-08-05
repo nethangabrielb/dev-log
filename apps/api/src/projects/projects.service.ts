@@ -9,6 +9,8 @@ import { Project, ProjectDocument } from './schemas/project.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session, SessionDocument } from '../sessions/schemas/sessions.schema';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
+import { buildPaginatedResult } from '../common/pagination.util';
 import {
   LinkedToKind,
   ProjectsCategoryBreakdown,
@@ -29,8 +31,19 @@ export class ProjectsService {
     return this.projectModel.create({ ...createProjectDto, userId });
   }
 
-  findAll(userId: string) {
-    return this.projectModel.find({ userId }).exec();
+  async findAll(userId: string, pagination: Partial<PaginationQueryDto> = {}) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const filter = { userId };
+    const [data, total] = await Promise.all([
+      this.projectModel
+        .find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.projectModel.countDocuments(filter),
+    ]);
+    return buildPaginatedResult(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

@@ -1,4 +1,5 @@
 import { client } from "./client";
+import type { Paginated, Pagination } from "./pagination";
 import type {
   ProjectCategory,
   ProjectStatus,
@@ -36,7 +37,8 @@ export interface ProjectStats {
 }
 
 export const projectsApi = {
-  findAll: () => client.get<Project[]>("/projects").then((r) => r.data),
+  findAll: (pagination?: Pagination) =>
+    client.get<Paginated<Project>>("/projects", { params: pagination }).then((r) => r.data),
 
   findOne: (id: string) =>
     client.get<Project>(`/projects/${id}`).then((r) => r.data),
