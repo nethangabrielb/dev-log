@@ -28,7 +28,8 @@ export class ArticlesController {
 
   @Get('statistics')
   getStatistics(@Req() req) {
-    return this.articlesService.getStatistics(req.user.userId);
+    const timezone = req.user.timezone || 'Etc/UTC';
+    return this.articlesService.getStatistics(req.user.userId, timezone);
   }
 
   @Get(':id')

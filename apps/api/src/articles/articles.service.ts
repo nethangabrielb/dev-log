@@ -92,7 +92,7 @@ export class ArticlesService {
     return (result[0] as ReadRatio) ?? { total: 0, read: 0 };
   }
 
-  async getReadThisMonth(userId: string) {
+  async getReadThisMonth(userId: string, timezone: string) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -111,7 +111,7 @@ export class ArticlesService {
             $dateToString: {
               format: '%Y-%m-%d',
               date: '$readAt',
-              timezone: 'Asia/Manila',
+              timezone,
             },
           },
           count: { $sum: 1 },
@@ -125,7 +125,7 @@ export class ArticlesService {
     // build an array of all the days of the current month
     const days = Array.from({ length: daysInMonth }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth(), i + 1);
-      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+      return d.toLocaleDateString('en-CA', { timeZone: timezone });
     });
 
     const map = Object.fromEntries(results.map((r) => [r._id, r.count]));
@@ -158,7 +158,7 @@ export class ArticlesService {
     return breakdown as BreakdownByCategory[];
   }
 
-  async getStatistics(userId: string) {
+  async getStatistics(userId: string, timezone: string) {
     const [
       readRatio,
       readThisMonth,
@@ -166,7 +166,7 @@ export class ArticlesService {
       breakdownByCategory,
     ] = await Promise.all([
       this.getReadRatio(userId),
-      this.getReadThisMonth(userId),
+      this.getReadThisMonth(userId, timezone),
       this.getTotalTimeSpentReading(userId),
       this.getBreakdownByCategory(userId),
     ]);
