@@ -29,8 +29,7 @@ export function SnippetsPage() {
   const [viewing, setViewing] = useState<Snippet | null>(null);
 
   const snippets = useMemo<Snippet[]>(() => {
-    if (Array.isArray(rawSnippets)) return rawSnippets;
-    return [];
+    return rawSnippets?.data ?? [];
   }, [rawSnippets]);
 
   const handleCreate = (values: SnippetFormValues) => {

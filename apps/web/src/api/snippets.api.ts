@@ -1,4 +1,5 @@
 import { client } from "./client";
+import type { Paginated, Pagination } from "./pagination";
 import type { SnippetCategory, SnippetLanguage } from "@devlog/types";
 
 export interface Snippet {
@@ -26,7 +27,8 @@ export interface CreateSnippetDto {
 export type UpdateSnippetDto = Partial<CreateSnippetDto>;
 
 export const snippetsApi = {
-  findAll: () => client.get<Snippet[]>("/snippets").then((r) => r.data),
+  findAll: (pagination?: Pagination) =>
+    client.get<Paginated<Snippet>>("/snippets", { params: pagination }).then((r) => r.data),
 
   findOne: (id: string) =>
     client.get<Snippet>(`/snippets/${id}`).then((r) => r.data),

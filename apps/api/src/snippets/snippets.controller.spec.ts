@@ -69,8 +69,13 @@ describe('SnippetsController', () => {
     const snippets = [{ id: 'snippet-1' }, { id: 'snippet-2' }];
     service.findAll.mockResolvedValue(snippets);
 
-    await expect(controller.findAll(req)).resolves.toEqual(snippets);
-    expect(service.findAll).toHaveBeenCalledWith('user-1');
+    await expect(
+      controller.findAll(req, { page: 1, limit: 20 }),
+    ).resolves.toEqual(snippets);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should return a single snippet from the service', async () => {

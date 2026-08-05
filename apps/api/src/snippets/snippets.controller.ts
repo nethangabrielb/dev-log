@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { SnippetsService } from './snippets.service';
 import { CreateSnippetDto } from './dto/create-snippet.dto';
 import { UpdateSnippetDto } from './dto/update-snippet.dto';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
 
 @Controller('snippets')
 export class SnippetsController {
@@ -22,8 +24,8 @@ export class SnippetsController {
   }
 
   @Get()
-  findAll(@Req() req) {
-    return this.snippetsService.findAll(req.user.userId);
+  findAll(@Req() req, @Query() pagination: PaginationQueryDto) {
+    return this.snippetsService.findAll(req.user.userId, pagination);
   }
 
   @Get(':id')

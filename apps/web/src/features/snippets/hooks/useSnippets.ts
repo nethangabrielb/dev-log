@@ -6,13 +6,14 @@ import {
   type Snippet,
   type UpdateSnippetDto,
 } from "@/api/snippets.api";
+import type { Paginated } from "@/api/pagination";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useSnippets() {
-  return useQuery<Snippet[]>({
+  return useQuery<Paginated<Snippet>>({
     queryKey: keys.snippets.all(),
-    queryFn: snippetsApi.findAll,
+    queryFn: () => snippetsApi.findAll(),
   });
 }
 

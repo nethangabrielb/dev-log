@@ -8,6 +8,8 @@ import { UpdateSnippetDto } from './dto/update-snippet.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Snippet, SnippetDocument } from './schemas/snippets.schema';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
+import { buildPaginatedResult } from '../common/pagination.util';
 
 @Injectable()
 export class SnippetsService {
@@ -20,8 +22,19 @@ export class SnippetsService {
     return this.snippetModel.create({ ...createSnippetDto, userId });
   }
 
-  async findAll(userId: string) {
-    return this.snippetModel.find({ userId }).exec();
+  async findAll(userId: string, pagination: Partial<PaginationQueryDto> = {}) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const filter = { userId };
+    const [data, total] = await Promise.all([
+      this.snippetModel
+        .find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.snippetModel.countDocuments(filter),
+    ]);
+    return buildPaginatedResult(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {
