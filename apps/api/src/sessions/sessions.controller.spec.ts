@@ -75,8 +75,13 @@ describe('SessionsController', () => {
     const sessions = [{ id: 'session-1' }];
     service.findAll.mockResolvedValue(sessions);
 
-    await expect(controller.findAll({}, req)).resolves.toEqual(sessions);
-    expect(service.findAll).toHaveBeenCalledWith('user-1', {});
+    await expect(
+      controller.findAll({ page: 1, limit: 20 }, req),
+    ).resolves.toEqual(sessions);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should forward filters to the service', async () => {
@@ -86,6 +91,8 @@ describe('SessionsController', () => {
       type: SessionType.PROJECT,
       startDate: '2024-01-01',
       endDate: '2024-01-31',
+      page: 1,
+      limit: 20,
     };
 
     await expect(controller.findAll(filters, req)).resolves.toEqual(sessions);

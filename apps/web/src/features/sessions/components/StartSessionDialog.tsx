@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useForm, useWatch, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
 import { LinkedToKind, SessionType, type SessionTodo } from "@devlog/types";
 import {
   startSessionSchema,
   type StartSessionFormValues,
 } from "../schemas/session.schema";
 import { useActiveSession } from "../context/ActiveSessionContext";
-import { projectsApi } from "@/api/projects.api";
-import { keys } from "@/lib/queryKeys";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 import {
   Dialog,
   DialogContent,
@@ -33,13 +31,6 @@ export interface StartSessionDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface ProjectOption {
-  _id?: string;
-  id?: string;
-  name?: string;
-  title?: string;
-}
-
 export function StartSessionDialog({
   open,
   onOpenChange,
@@ -49,11 +40,7 @@ export function StartSessionDialog({
   const [projectName, setProjectName] = useState("");
   const [todoInput, setTodoInput] = useState("");
 
-  const { data: projects = [] } = useQuery<ProjectOption[]>({
-    queryKey: keys.projects.all(),
-    queryFn: projectsApi.findAll,
-    enabled: open,
-  });
+  const { data: projects } = useProjects();
 
   const {
     control,
@@ -170,7 +157,9 @@ export function StartSessionDialog({
                   setProjectId(v ?? "");
                   setProjectName(
                     v
-                      ? projects.find((p) => p._id === v || p.id === v)?.name ||
+                      ? (projects?.data ?? []).find(
+                          (p) => p._id === v || p.id === v,
+                        )?.name ||
                           ""
                       : "",
                   );
@@ -181,9 +170,9 @@ export function StartSessionDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">None</SelectItem>
-                  {projects.map((p) => (
+                  {(projects?.data ?? []).map((p) => (
                     <SelectItem key={p._id || p.id} value={p._id || p.id}>
-                      {p.name || p.title}
+                      {p.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

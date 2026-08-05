@@ -9,6 +9,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
 import { fromZonedTime } from 'date-fns-tz';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
+import { buildPaginatedResult } from '../common/pagination.util';
 import {
   TotalByType,
   AveragePerDay,
@@ -59,9 +61,11 @@ export class SessionsService {
 
   async findAll(
     userId: string,
-    filters: SessionFilters = {},
+    filters: SessionFilters & Partial<PaginationQueryDto> = {},
     timezone = 'Etc/UTC',
   ) {
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
     const query: Record<string, any> = { userId };
     if (filters.type) query.type = filters.type;
     if (filters.startDate) {
@@ -77,7 +81,17 @@ export class SessionsService {
       };
     }
 
-    return this.sessionModel.find(query).sort({ startedAt: -1 }).exec();
+    const [data, total] = await Promise.all([
+      this.sessionModel
+        .find(query)
+        .sort({ startedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.sessionModel.countDocuments(query),
+    ]);
+
+    return buildPaginatedResult(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

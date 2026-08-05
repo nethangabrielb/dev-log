@@ -7,6 +7,7 @@ import type {
   SessionType,
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
+import type { Paginated } from "@/api/pagination";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
 import type { SessionData } from "@/features/sessions/components/SessionCard";
@@ -67,7 +68,7 @@ function withOptimisticRollback(
 }
 
 export function useSessions(filters?: SessionFilters) {
-  return useQuery({
+  return useQuery<Paginated<SessionData>>({
     queryKey: keys.sessions.all(filters),
     queryFn: () => sessionsApi.findAll(filters),
   });

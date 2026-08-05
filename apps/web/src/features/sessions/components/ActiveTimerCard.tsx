@@ -37,7 +37,7 @@ export function ActiveTimerCard() {
 
   const { data: projects } = useProjects();
   const linkedProject = activeSession?.linkedTo
-    ? projects?.find((p) => (p._id || p.id) === activeSession.linkedTo?.id)
+    ? projects?.data.find((p) => (p._id || p.id) === activeSession.linkedTo?.id)
     : undefined;
 
   useEffect(() => {
