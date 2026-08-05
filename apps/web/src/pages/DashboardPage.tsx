@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Clock, Flame, Activity, AlertCircle, RefreshCw } from "lucide-react";
+import { Clock, Flame, Activity, AlertCircle, RefreshCw, Timer } from "lucide-react";
 import { useSessionStats } from "@/features/sessions/hooks/useSessions";
 import { useDsaStats } from "@/features/dsa/hooks/useDsaStats";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboard";
@@ -51,6 +51,10 @@ export function DashboardPage() {
     refetchDsa();
     refetchDashboard();
   };
+
+  // Today's duration & session count from dashboard endpoint
+  const todaysDuration = dashboardStats?.todaysSessions?.totalDuration || 0;
+  const todaysCount = dashboardStats?.todaysSessions?.totalSessions || 0;
 
   // Weekly data comes from the dashboard aggregate endpoint (week-aware)
   const weeklyBreakdown = dashboardStats?.weeklyBreakdown || [];
@@ -106,10 +110,10 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Top 3 Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Top 4 Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
-          Array.from({ length: 3 }).map((_, idx) => (
+          Array.from({ length: 4 }).map((_, idx) => (
             <Card key={idx}>
               <CardContent className="space-y-2">
                 <Skeleton className="h-3 w-24" />
@@ -120,6 +124,12 @@ export function DashboardPage() {
           ))
         ) : !isError ? (
           <>
+            <StatCard
+              label="Time Logged Today"
+              value={formatDuration(todaysDuration)}
+              sublabel={`${todaysCount} session${todaysCount === 1 ? "" : "s"} recorded today`}
+              icon={Timer}
+            />
             <StatCard
               label="Total Time This Week"
               value={formatDuration(weeklyTotalSeconds)}

@@ -81,8 +81,8 @@ At-a-glance view of the current week.
 **Data:** `GET /sessions/statistics`, `GET /sessions/streaks`,
 `GET /dsa/statistics`, `GET /daily-reports` (latest 1)
 
-**Layout:** Stat cards (totalTimeSpent, streak, totalSessions) →
-time-by-type bar chart + type breakdown → yesterday's report (collapsible)
+**Layout:** Stat cards (timeLoggedToday, totalTimeThisWeek, streak, totalSessions) →
+time-by-type bar chart
 
 ---
 
