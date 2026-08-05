@@ -4,9 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LinkedToKind, SessionType, type SessionTodo } from "@devlog/types";
 import {
   startSessionSchema,
+  TIMER_PRESETS,
   type StartSessionFormValues,
 } from "../schemas/session.schema";
 import { useActiveSession } from "../context/ActiveSessionContext";
+import { requestNotificationPermission } from "../lib/timerAlert";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import {
   Dialog,
@@ -24,7 +26,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Clock, Timer } from "lucide-react";
 
 export interface StartSessionDialogProps {
   open: boolean;
@@ -46,6 +48,7 @@ export function StartSessionDialog({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<StartSessionFormValues>({
     resolver: zodResolver(startSessionSchema),
@@ -53,6 +56,8 @@ export function StartSessionDialog({
       type: SessionType.PROJECT,
       startedAt: new Date(),
       todos: [],
+      mode: "stopwatch",
+      timerMinutes: 30,
     },
   });
 
@@ -62,6 +67,7 @@ export function StartSessionDialog({
   });
 
   const type = useWatch({ control, name: "type" });
+  const mode = useWatch({ control, name: "mode" });
 
   useEffect(() => {
     if (open) {
@@ -69,6 +75,8 @@ export function StartSessionDialog({
         type: SessionType.PROJECT,
         startedAt: new Date(),
         todos: [],
+        mode: "stopwatch",
+        timerMinutes: 30,
       });
     }
   }, [open, reset]);
@@ -96,7 +104,15 @@ export function StartSessionDialog({
     const linkedTo = projectId
       ? { kind: LinkedToKind.PROJECT as const, id: projectId }
       : undefined;
-    startSession(data.type, linkedTo, initialTodos);
+    if (data.mode === "timer") {
+      requestNotificationPermission();
+      startSession(data.type, linkedTo, initialTodos, {
+        mode: "timer",
+        targetDurationInSeconds: (data.timerMinutes ?? 30) * 60,
+      });
+    } else {
+      startSession(data.type, linkedTo, initialTodos);
+    }
     handleOpenChange(false);
   };
 
@@ -145,6 +161,92 @@ export function StartSessionDialog({
               <p className="text-xs text-destructive">{errors.type.message}</p>
             )}
           </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Mode
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={mode === "stopwatch" ? "default" : "outline"}
+                onClick={() => setValue("mode", "stopwatch", { shouldValidate: true })}
+                className={
+                  mode === "stopwatch"
+                    ? "bg-accent text-accent-fg hover:bg-accent-dim"
+                    : undefined
+                }
+              >
+                <Clock className="h-4 w-4" />
+                Stopwatch
+              </Button>
+              <Button
+                type="button"
+                variant={mode === "timer" ? "default" : "outline"}
+                onClick={() => setValue("mode", "timer", { shouldValidate: true })}
+                className={
+                  mode === "timer"
+                    ? "bg-accent text-accent-fg hover:bg-accent-dim"
+                    : undefined
+                }
+              >
+                <Timer className="h-4 w-4" />
+                Timer
+              </Button>
+            </div>
+          </div>
+
+          {mode === "timer" && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Duration
+              </label>
+              <Controller
+                name="timerMinutes"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={480}
+                      value={Number.isNaN(field.value) ? "" : field.value}
+                      onChange={(e) =>
+                        field.onChange(e.target.valueAsNumber)
+                      }
+                      placeholder="Minutes"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {TIMER_PRESETS.map((preset) => (
+                        <Button
+                          key={preset}
+                          type="button"
+                          variant={
+                            field.value === preset ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => field.onChange(preset)}
+                          className={
+                            field.value === preset
+                              ? "bg-accent text-accent-fg hover:bg-accent-dim"
+                              : undefined
+                          }
+                        >
+                          {preset}m
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              />
+              {errors.timerMinutes && (
+                <p className="text-xs text-destructive">
+                  {errors.timerMinutes.message}
+                </p>
+              )}
+            </div>
+          )}
 
           {type === SessionType.PROJECT && (
             <div className="space-y-1.5">

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,16 +18,26 @@ import {
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { getApiErrorMessage } from "@/lib/apiError";
-import { formatClock } from "@/lib/formatters";
+import { formatClock, formatDuration } from "@/lib/formatters";
+import { notifyTimerDone, playChime } from "../lib/timerAlert";
 
 const STORAGE_KEY = "devlog-active-session";
 const APP_TITLE = "DevLog";
+
+export type SessionMode = "stopwatch" | "timer";
 
 export interface ActiveSessionState {
   type: SessionType;
   linkedTo?: SessionLinkedTo | null;
   startedAt: Date;
   todos: SessionTodo[];
+  mode: SessionMode;
+  targetDurationInSeconds?: number;
+}
+
+export interface StartSessionOptions {
+  mode?: SessionMode;
+  targetDurationInSeconds?: number;
 }
 
 interface ActiveSessionContextValue {
@@ -34,7 +45,8 @@ interface ActiveSessionContextValue {
   startSession: (
     type: SessionType,
     linkedTo?: SessionLinkedTo | null,
-    initialTodos?: SessionTodo[]
+    initialTodos?: SessionTodo[],
+    options?: StartSessionOptions
   ) => void;
   addTodo: (name: string) => void;
   toggleTodo: (index: number) => void;
@@ -66,6 +78,13 @@ function loadStoredSession(): ActiveSessionState | null {
       linkedTo: parsed.linkedTo ?? null,
       startedAt: new Date(parsed.startedAt),
       todos: parsed.todos as SessionTodo[],
+      mode: parsed.mode === "timer" ? "timer" : "stopwatch",
+      targetDurationInSeconds:
+        parsed.mode === "timer"
+          ? typeof parsed.targetDurationInSeconds === "number"
+            ? parsed.targetDurationInSeconds
+            : undefined
+          : undefined,
     };
   } catch {
     return null;
@@ -99,7 +118,15 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     }
     const update = () => {
       const elapsed = Date.now() - activeSession.startedAt.getTime();
-      document.title = `${formatClock(elapsed)} • ${APP_TITLE}`;
+      if (activeSession.mode === "timer") {
+        const remaining = Math.max(
+          0,
+          (activeSession.targetDurationInSeconds ?? 0) * 1000 - elapsed
+        );
+        document.title = `${formatClock(remaining)} • ${APP_TITLE}`;
+      } else {
+        document.title = `${formatClock(elapsed)} • ${APP_TITLE}`;
+      }
     };
     update();
     const interval = setInterval(update, 1000);
@@ -109,17 +136,24 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     };
   }, [activeSession]);
 
+  const autoStopFired = useRef(false);
+
   const startSession = useCallback(
     (
       type: SessionType,
       linkedTo?: SessionLinkedTo | null,
-      initialTodos?: SessionTodo[]
+      initialTodos?: SessionTodo[],
+      options?: StartSessionOptions
     ) => {
+      const mode = options?.mode ?? "stopwatch";
       setActiveSession({
         type,
         linkedTo: linkedTo ?? null,
         startedAt: new Date(),
         todos: initialTodos ?? [],
+        mode,
+        targetDurationInSeconds:
+          mode === "timer" ? options?.targetDurationInSeconds : undefined,
       });
     },
     []
@@ -190,6 +224,31 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     }
   }, [activeSession, queryClient]);
+
+  useEffect(() => {
+    if (!activeSession || activeSession.mode !== "timer") {
+      autoStopFired.current = false;
+      return;
+    }
+    const targetSeconds = activeSession.targetDurationInSeconds ?? 0;
+    const check = () => {
+      if (autoStopFired.current) return;
+      const elapsed = Math.floor(
+        (Date.now() - activeSession.startedAt.getTime()) / 1000
+      );
+      if (elapsed >= targetSeconds) {
+        autoStopFired.current = true;
+        const label = formatDuration(targetSeconds);
+        void stopSession().then(() => {
+          playChime();
+          notifyTimerDone(label);
+        });
+      }
+    };
+    check();
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
+  }, [activeSession, stopSession]);
 
   const cancelSession = useCallback(() => {
     setActiveSession(null);

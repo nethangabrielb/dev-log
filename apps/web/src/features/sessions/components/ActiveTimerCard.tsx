@@ -44,6 +44,15 @@ export function ActiveTimerCard() {
   if (!activeSession) return null;
 
   const elapsedMs = now - activeSession.startedAt.getTime();
+  const targetMs = activeSession.targetDurationInSeconds
+    ? activeSession.targetDurationInSeconds * 1000
+    : null;
+  const remainingMs =
+    targetMs !== null ? Math.max(0, targetMs - elapsedMs) : null;
+  const progressPct =
+    targetMs !== null && targetMs > 0
+      ? Math.min(100, (elapsedMs / targetMs) * 100)
+      : null;
 
   const typeColor =
     SESSION_TYPE_COLOR[activeSession.type] || "var(--devlog-text-muted)";
@@ -92,16 +101,46 @@ export function ActiveTimerCard() {
             {activeSession.type}
           </span>
         </div>
-        <span
-          className="text-base font-mono font-medium tracking-tight tabular-nums"
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--devlog-text-primary)",
-          }}
-        >
-          {formatClock(elapsedMs)}
-        </span>
+        <div className="text-right shrink-0">
+          <span
+            className="text-base font-mono font-medium tracking-tight tabular-nums block"
+            style={{
+              fontFamily: "var(--font-mono)",
+              color: "var(--devlog-text-primary)",
+            }}
+          >
+            {remainingMs !== null
+              ? formatClock(remainingMs)
+              : formatClock(elapsedMs)}
+          </span>
+          {remainingMs !== null && (
+            <span
+              className="text-[10px] uppercase tracking-wider block"
+              style={{ color: "var(--devlog-text-muted)" }}
+            >
+              left
+            </span>
+          )}
+        </div>
       </div>
+
+      {progressPct !== null && (
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full"
+          style={{ backgroundColor: "var(--devlog-bg-elevated)" }}
+        >
+          <div
+            className="h-full rounded-full transition-[width] duration-1000 ease-linear"
+            style={{
+              width: `${100 - progressPct}%`,
+              backgroundColor:
+                progressPct >= 90
+                  ? "var(--devlog-danger)"
+                  : "var(--devlog-accent)",
+            }}
+          />
+        </div>
+      )}
 
       {activeSession.linkedTo && (
         <div
