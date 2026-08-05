@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 
 interface NavItem {
@@ -91,24 +92,25 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
-      <footer className="p-3 border-t border-border space-y-1">
-        <div className="px-3 py-1 overflow-hidden">
-          <p className="text-sm font-semibold truncate text-text-primary">
-            {user?.username ?? "User"}
-          </p>
-          <p className="text-xs truncate text-text-muted">
-            {user?.email ?? ""}
-          </p>
+      <footer className="p-3 border-t border-border">
+        <div className="flex items-center gap-3">
+          <UserAvatar seed={user?.userId ?? "devlog-user"} />
+          <div className="min-w-0 flex-1">
+            <p className="mb-0.5 text-sm font-semibold truncate text-text-primary">
+              {user?.username ?? "User"}
+            </p>
+            <Button
+              variant="ghost"
+              size="xs"
+              className="w-full justify-start gap-1.5 px-0 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+              onClick={() => logout()}
+              disabled={isPending}
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>{isPending ? "Logging out..." : "Log out"}</span>
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 px-3 text-sm font-medium rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-hover"
-          onClick={() => logout()}
-          disabled={isPending}
-        >
-          <LogOut className="h-4 w-4" />
-          <span>{isPending ? "Logging out..." : "Log out"}</span>
-        </Button>
       </footer>
     </aside>
   );
