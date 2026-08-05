@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { UserDocument } from '../users/schemas/users.schema';
+import { normalizeTimezone } from '../common/timezone.util';
 import type { Profile } from 'passport-google-oauth20';
 
 @Injectable()
@@ -52,12 +53,18 @@ export class AuthService {
     timezone?: string,
   ): Promise<UserDocument | null> {
     const email = profile.emails?.[0]?.value;
+    const normalizedTimezone = timezone
+      ? normalizeTimezone(timezone)
+      : undefined;
 
     let user = await this.usersService.findByGoogleId(profile.id);
     if (user) {
-      if (timezone && user.timezone !== timezone) {
-        await this.usersService.updateTimezone(user._id.toString(), timezone);
-        user.timezone = timezone;
+      if (normalizedTimezone && user.timezone !== normalizedTimezone) {
+        await this.usersService.updateTimezone(
+          user._id.toString(),
+          normalizedTimezone,
+        );
+        user.timezone = normalizedTimezone;
       }
       return user;
     }
@@ -66,9 +73,12 @@ export class AuthService {
       user = await this.usersService.findByIdentifier(email);
       if (user) {
         await this.usersService.setGoogleId(user._id.toString(), profile.id);
-        if (timezone && user.timezone !== timezone) {
-          await this.usersService.updateTimezone(user._id.toString(), timezone);
-          user.timezone = timezone;
+        if (normalizedTimezone && user.timezone !== normalizedTimezone) {
+          await this.usersService.updateTimezone(
+            user._id.toString(),
+            normalizedTimezone,
+          );
+          user.timezone = normalizedTimezone;
         }
         return user;
       }
@@ -78,7 +88,7 @@ export class AuthService {
       return this.usersService.create({
         username,
         email,
-        timezone,
+        timezone: normalizedTimezone,
         provider: 'google',
         googleId: profile.id,
       });

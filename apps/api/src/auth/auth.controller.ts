@@ -20,6 +20,7 @@ import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
 import { Public } from './decorators/public.decorator';
+import { normalizeTimezone } from '../common/timezone.util';
 
 @Controller('auth')
 export class AuthController {
@@ -39,6 +40,9 @@ export class AuthController {
     // hash password
     const hashedPassword = await bcrypt.hash(body.password, 10);
     body.password = hashedPassword;
+    body.timezone = body.timezone
+      ? normalizeTimezone(body.timezone)
+      : undefined;
     try {
       const user = await this.userService.create(body);
       const { password: _password, ...safeUser } = user.toObject();
@@ -66,9 +70,13 @@ export class AuthController {
   ) {
     const user = req.user as UserDocument;
 
-    if (body.timezone && user.timezone !== body.timezone) {
-      await this.userService.updateTimezone(user._id.toString(), body.timezone);
-      user.timezone = body.timezone;
+    const timezone = body.timezone
+      ? normalizeTimezone(body.timezone)
+      : undefined;
+
+    if (timezone && user.timezone !== timezone) {
+      await this.userService.updateTimezone(user._id.toString(), timezone);
+      user.timezone = timezone;
     }
 
     this.issueSession(res, user);

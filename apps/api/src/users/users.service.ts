@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/users.schema';
 import { CreateUserDto } from './dto/users.dto';
+import { normalizeTimezone } from '../common/timezone.util';
 
 // Internal record type: provider/googleId are set server-side only
 // (never accepted from the client — see CreateUserDto).
@@ -44,6 +45,10 @@ export class UsersService {
   }
 
   async updateTimezone(userId: string, timezone: string) {
-    return this.userModel.updateOne({ _id: userId }, { $set: { timezone } });
+    const normalized = normalizeTimezone(timezone);
+    return this.userModel.updateOne(
+      { _id: userId },
+      { $set: { timezone: normalized } },
+    );
   }
 }

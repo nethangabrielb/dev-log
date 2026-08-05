@@ -1,5 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
 import { DailyReportService } from './daily-report.service';
+
+interface GenerateDailyReportJobData {
+  userId: string;
+  timezone: string;
+}
 
 @Processor('daily-report')
 export class DailyReportProcessor extends WorkerHost {
@@ -7,7 +13,7 @@ export class DailyReportProcessor extends WorkerHost {
     super();
   }
 
-  async process() {
-    await this.dailyReportService.generateDailyReport();
+  async process(job: Job<GenerateDailyReportJobData>) {
+    await this.dailyReportService.generateDailyReport(job.data.userId);
   }
 }
