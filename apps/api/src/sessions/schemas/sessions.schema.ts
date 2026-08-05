@@ -28,7 +28,7 @@ export class Session {
         completed: { type: Boolean, required: true },
       },
     ],
-    required: true,
+    default: [],
   })
   todos!: Array<{ name: string; completed: boolean }>;
 

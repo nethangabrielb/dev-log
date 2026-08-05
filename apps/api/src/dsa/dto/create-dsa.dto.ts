@@ -27,10 +27,9 @@ export class CreateDsaDto {
   @IsBoolean()
   isSolved!: boolean;
 
-  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  solvedAt?: Date;
+  solvedAt!: Date;
 
   @IsEnum(ConfidenceLevel)
   confidenceLevel!: ConfidenceLevel;

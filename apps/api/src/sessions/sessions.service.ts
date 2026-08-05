@@ -8,6 +8,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
+import { fromZonedTime } from 'date-fns-tz';
 import {
   TotalByType,
   AveragePerDay,
@@ -56,19 +57,23 @@ export class SessionsService {
     return createdSession.save();
   }
 
-  async findAll(userId: string, filters: SessionFilters = {}) {
+  async findAll(
+    userId: string,
+    filters: SessionFilters = {},
+    timezone = 'Etc/UTC',
+  ) {
     const query: Record<string, any> = { userId };
     if (filters.type) query.type = filters.type;
     if (filters.startDate) {
       query.startedAt = {
         ...(query.startedAt ?? {}),
-        $gte: new Date(`${filters.startDate}T00:00:00.000`),
+        $gte: fromZonedTime(`${filters.startDate}T00:00:00.000`, timezone),
       };
     }
     if (filters.endDate) {
       query.startedAt = {
         ...(query.startedAt ?? {}),
-        $lte: new Date(`${filters.endDate}T23:59:59.999`),
+        $lte: fromZonedTime(`${filters.endDate}T23:59:59.999`, timezone),
       };
     }
 

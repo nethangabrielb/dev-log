@@ -12,7 +12,7 @@ import {
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import type { SessionFilters } from '@devlog/types';
+import { SessionFiltersDto } from './dto/session-filters.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -25,9 +25,10 @@ export class SessionsController {
   }
 
   @Get()
-  findAll(@Query() filters: SessionFilters, @Req() req: any) {
+  findAll(@Query() filters: SessionFiltersDto, @Req() req: any) {
     const userId = req.user.userId;
-    return this.sessionsService.findAll(userId, filters);
+    const timezone = req.user.timezone || 'Etc/UTC';
+    return this.sessionsService.findAll(userId, filters, timezone);
   }
 
   @Get('streaks')

@@ -52,6 +52,7 @@ describe('DsaService', () => {
       difficulty: Difficulty.EASY,
       pattern: DsaPattern.TWO_POINTERS,
       isSolved: false,
+      solvedAt: new Date('2024-01-01T10:00:00.000Z'),
       confidenceLevel: ConfidenceLevel.HIGH,
       notes: 'Practice the hash map approach',
     };

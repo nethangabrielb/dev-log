@@ -22,7 +22,11 @@ export class DsaService {
 
   // CRUD for DSA
   async create(createDsaDto: CreateDsaDto, userId: string) {
-    return this.dsaModel.create({ ...createDsaDto, userId });
+    return this.dsaModel.create({
+      ...createDsaDto,
+      solvedAt: createDsaDto.solvedAt ?? new Date(),
+      userId,
+    });
   }
 
   async findAll(userId: string) {
