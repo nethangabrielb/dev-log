@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { DsaService } from './dsa.service';
 import { CreateDsaDto } from './dto/create-dsa.dto';
 import { UpdateDsaDto } from './dto/update-dsa.dto';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
 
 @Controller('dsa')
 export class DsaController {
@@ -22,9 +24,9 @@ export class DsaController {
   }
 
   @Get()
-  findAll(@Req() req: any) {
+  findAll(@Req() req: any, @Query() pagination: PaginationQueryDto) {
     const userId = req.user.userId;
-    return this.dsaService.findAll(userId);
+    return this.dsaService.findAll(userId, pagination);
   }
 
   @Get('statistics')

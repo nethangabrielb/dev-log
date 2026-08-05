@@ -8,11 +8,12 @@ import {
   type DsaRecord,
   type UpdateDsaDto,
 } from "@/api/dsa.api";
+import type { Paginated } from "@/api/pagination";
 import { keys } from "@/lib/queryKeys";
 import { getApiErrorMessage } from "@/lib/apiError";
 
 export function useDsa(filters?: DsaFilters) {
-  return useQuery<DsaRecord[]>({
+  return useQuery<Paginated<DsaRecord>>({
     queryKey: keys.dsa.all(filters),
     queryFn: () => dsaApi.findAll(filters),
   });

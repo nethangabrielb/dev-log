@@ -9,6 +9,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Dsa } from './entities/dsa.entity';
 import { Model, Types } from 'mongoose';
 import { DsaDocument } from './schemas/dsa.schema';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
+import { buildPaginatedResult } from '../common/pagination.util';
 import {
   DsaStatistics,
   BreakdownByDifficulty,
@@ -29,8 +31,19 @@ export class DsaService {
     });
   }
 
-  async findAll(userId: string) {
-    return this.dsaModel.find({ userId }).exec();
+  async findAll(userId: string, pagination: Partial<PaginationQueryDto> = {}) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+    const filter = { userId };
+    const [data, total] = await Promise.all([
+      this.dsaModel
+        .find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.dsaModel.countDocuments(filter),
+    ]);
+    return buildPaginatedResult(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

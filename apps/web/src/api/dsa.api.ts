@@ -1,4 +1,5 @@
 import { client } from "./client";
+import type { Paginated, Pagination } from "./pagination";
 import type {
   ConfidenceLevel,
   Difficulty,
@@ -39,8 +40,8 @@ export interface DsaFilters {
 }
 
 export const dsaApi = {
-  findAll: (filters?: DsaFilters) =>
-    client.get("/dsa", { params: filters }).then((r) => r.data),
+  findAll: (filters?: DsaFilters & Pagination) =>
+    client.get<Paginated<DsaRecord>>("/dsa", { params: filters }).then((r) => r.data),
 
   findOne: (id: string) => client.get(`/dsa/${id}`).then((r) => r.data),
 

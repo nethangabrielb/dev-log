@@ -75,8 +75,13 @@ describe('DsaController', () => {
     const dsaProblems = [{ id: 'dsa-1' }, { id: 'dsa-2' }];
     service.findAll.mockResolvedValue(dsaProblems);
 
-    await expect(controller.findAll(req)).resolves.toEqual(dsaProblems);
-    expect(service.findAll).toHaveBeenCalledWith('user-1');
+    await expect(
+      controller.findAll(req, { page: 1, limit: 20 }),
+    ).resolves.toEqual(dsaProblems);
+    expect(service.findAll).toHaveBeenCalledWith('user-1', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should return dsa statistics from the service', async () => {

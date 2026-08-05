@@ -19,7 +19,7 @@ export function DsaOverviewPage() {
   const { data: rawProblems, isLoading: isProblemsLoading } = useDsa();
 
   const loading = isStatsLoading || isProblemsLoading;
-  const tracked = Array.isArray(rawProblems) ? rawProblems.length : 0;
+  const tracked = rawProblems?.total ?? 0;
 
   const difficultyData = DIFFICULTY_ORDER.map((difficulty) => {
     const found = (stats?.breakdownByDifficulty ?? []).find(

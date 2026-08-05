@@ -35,8 +35,7 @@ export function DSAPage() {
   const [editing, setEditing] = useState<DsaRecord | null>(null);
 
   const problems = useMemo<DsaRecord[]>(() => {
-    if (Array.isArray(rawProblems)) return rawProblems;
-    return [];
+    return rawProblems?.data ?? [];
   }, [rawProblems]);
 
   const difficultyData = useMemo(
