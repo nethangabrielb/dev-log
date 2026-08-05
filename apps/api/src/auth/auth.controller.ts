@@ -41,7 +41,12 @@ export class AuthController {
     body.password = hashedPassword;
     try {
       const user = await this.userService.create(body);
-      return { success: true, message: 'User registered successfully', user };
+      const { password: _password, ...safeUser } = user.toObject();
+      return {
+        success: true,
+        message: 'User registered successfully',
+        user: safeUser,
+      };
     } catch (error: any) {
       if (error instanceof Error && 'code' in error && error.code === 11000) {
         throw new ConflictException('User already exists');

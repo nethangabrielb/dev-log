@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
@@ -21,12 +15,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   timezone?: string;
-
-  @IsOptional()
-  @IsEnum(['local', 'google'])
-  provider?: 'local' | 'google';
-
-  @IsOptional()
-  @IsString()
-  googleId?: string;
 }
