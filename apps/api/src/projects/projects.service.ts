@@ -74,6 +74,16 @@ export class ProjectsService {
     if (!project || project.userId !== userId) {
       throw new NotFoundException('Project not found');
     }
+    await this.sessionModel
+      .updateMany(
+        {
+          userId,
+          'linkedTo.kind': LinkedToKind.PROJECT,
+          'linkedTo.id': id,
+        },
+        { $unset: { linkedTo: '' } },
+      )
+      .exec();
     return project.deleteOne();
   }
 
