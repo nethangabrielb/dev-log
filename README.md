@@ -18,10 +18,10 @@ DevLog is a self-hosted developer activity tracker that logs time sessions again
 
 ## Tech Stack
 
-**Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, React Hook Form + Zod, Recharts, shadcn/ui
-**Backend:** Node.js, NestJS (REST), Mongoose, Passport (JWT + Google OAuth), BullMQ
-**Database:** MongoDB
-**Other:** Redis (BullMQ), Axios, pnpm workspaces, Vercel (SPA deployment)
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, React Hook Form + Zod, Recharts, shadcn/ui
+- **Backend:** Node.js, NestJS (REST), Mongoose, Passport (JWT + Google OAuth), BullMQ
+- **Database:** MongoDB
+- **Other:** Redis (BullMQ), Axios, pnpm workspaces, Vercel (SPA deployment)
 
 ## Architecture
 
