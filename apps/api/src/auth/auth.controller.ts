@@ -42,11 +42,10 @@ export class AuthController {
     try {
       const user = await this.userService.create(body);
       return { success: true, message: 'User registered successfully', user };
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (error: any) {
+      if (error instanceof Error && 'code' in error && error.code === 11000) {
         throw new ConflictException('User already exists');
       }
-
       throw error;
     }
   }
