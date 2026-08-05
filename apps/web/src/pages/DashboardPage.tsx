@@ -7,24 +7,50 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Clock, Flame, Activity } from "lucide-react";
+import { Clock, Flame, Activity, AlertCircle, RefreshCw } from "lucide-react";
 import { useSessionStats } from "@/features/sessions/hooks/useSessions";
 import { useDsaStats } from "@/features/dsa/hooks/useDsaStats";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboard";
 import { StatCard } from "@/components/common/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getApiErrorMessage } from "@/lib/apiError";
 import { formatDuration, SESSION_TYPE_COLOR } from "@/lib/formatters";
 import { SessionType } from "@devlog/types";
 
 export function DashboardPage() {
-  const { data: sessionStats, isLoading: isStatsLoading } = useSessionStats();
-  const { isLoading: isDsaLoading } = useDsaStats();
-  const { data: dashboardStats, isLoading: isDashboardLoading } =
-    useDashboardStats();
+  const {
+    data: sessionStats,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+    error: statsError,
+    refetch: refetchStats,
+  } = useSessionStats();
+  const {
+    isLoading: isDsaLoading,
+    isError: isDsaError,
+    error: dsaError,
+    refetch: refetchDsa,
+  } = useDsaStats();
+  const {
+    data: dashboardStats,
+    isLoading: isDashboardLoading,
+    isError: isDashboardError,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useDashboardStats();
 
   // Combine query loading states without full page spinner
   const isLoading = isStatsLoading || isDsaLoading || isDashboardLoading;
+
+  const isError = isStatsError || isDsaError || isDashboardError;
+  const error = statsError ?? dsaError ?? dashboardError;
+  const retry = () => {
+    refetchStats();
+    refetchDsa();
+    refetchDashboard();
+  };
 
   // Weekly data comes from the dashboard aggregate endpoint (week-aware)
   const weeklyBreakdown = dashboardStats?.weeklyBreakdown || [];
@@ -56,6 +82,30 @@ export function DashboardPage() {
         </p>
       </div>
 
+      {/* API Fetch Error State */}
+      {isError && (
+        <div className="p-6 rounded-xl border border-destructive/40 bg-destructive/10 flex flex-col items-center justify-center text-center gap-3 my-4">
+          <AlertCircle
+            className="h-8 w-8 shrink-0"
+            style={{ color: "var(--devlog-danger)" }}
+          />
+          <div className="text-sm text-muted-foreground max-w-md">
+            {getApiErrorMessage(
+              error,
+              "Failed to load dashboard data. Make sure the backend server is running."
+            )}
+          </div>
+          <Button
+            onClick={retry}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Top 3 Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {isLoading ? (
@@ -68,7 +118,7 @@ export function DashboardPage() {
               </CardContent>
             </Card>
           ))
-        ) : (
+        ) : !isError ? (
           <>
             <StatCard
               label="Total Time This Week"
@@ -89,7 +139,7 @@ export function DashboardPage() {
               icon={Activity}
             />
           </>
-        )}
+        ) : null}
       </div>
 
       {/* Time by SessionType Bar Chart */}
@@ -111,7 +161,7 @@ export function DashboardPage() {
             <Skeleton className="h-3/4 flex-1 rounded-t" />
             <Skeleton className="h-1/3 flex-1 rounded-t" />
           </div>
-        ) : (
+        ) : !isError ? (
           <div className="h-72 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -163,7 +213,7 @@ export function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

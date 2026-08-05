@@ -157,10 +157,9 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       ...(current.linkedTo ? { linkedTo: current.linkedTo } : {}),
     };
 
-    setActiveSession(null);
-
     try {
       await sessionsApi.create(payload);
+      setActiveSession(null);
       toast.success("Session logged");
     } catch (error) {
       toast.error(
