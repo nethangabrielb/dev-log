@@ -78,6 +78,7 @@ export function BreakdownChart({
                 axisLine={false}
               />
               <Tooltip
+                cursor={{ fill: "var(--devlog-bg-hover)" }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const row = payload[0].payload;

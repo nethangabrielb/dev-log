@@ -271,6 +271,7 @@ export function ProjectDetailPage() {
                         axisLine={{ stroke: "var(--devlog-border)" }}
                       />
                       <Tooltip
+                        cursor={{ fill: "var(--devlog-bg-hover)" }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const row = payload[0].payload;
