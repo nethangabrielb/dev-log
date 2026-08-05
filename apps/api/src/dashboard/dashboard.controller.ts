@@ -8,7 +8,7 @@ export class DashboardController {
   @Get()
   findAll(@Req() req: any) {
     const userId = req.user.userId;
-    const timezone = req.user.timezone || 'Asia/Manila';
+    const timezone = req.user.timezone || 'Etc/UTC';
     return this.dashboardService.getDashboardData(userId, timezone);
   }
 }

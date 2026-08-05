@@ -54,8 +54,19 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @HttpCode(200)
   @Post('/login')
-  login(@Request() req, @Res({ passthrough: true }) res: Response) {
-    this.issueSession(res, req.user as UserDocument);
+  async login(
+    @Request() req,
+    @Body() body: { timezone?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = req.user as UserDocument;
+
+    if (body.timezone && user.timezone !== body.timezone) {
+      await this.userService.updateTimezone(user._id.toString(), body.timezone);
+      user.timezone = body.timezone;
+    }
+
+    this.issueSession(res, user);
 
     return { success: true, message: 'Logged in successfully' };
   }

@@ -27,4 +27,8 @@ export class UsersService {
   async setGoogleId(userId: string, googleId: string) {
     return this.userModel.updateOne({ _id: userId }, { $set: { googleId } });
   }
+
+  async updateTimezone(userId: string, timezone: string) {
+    return this.userModel.updateOne({ _id: userId }, { $set: { timezone } });
+  }
 }

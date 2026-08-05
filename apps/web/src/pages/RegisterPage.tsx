@@ -1,4 +1,4 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
@@ -18,30 +18,8 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { getApiErrorMessage } from "../lib/apiError";
+import { detectTimezone } from "../lib/timezone";
 import { GoogleLoginButton } from "../components/common/GoogleLoginButton";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../components/ui/select";
-
-const TIMEZONES = [
-  { value: "Asia/Manila", label: "Asia/Manila (PHT, UTC+8)" },
-  { value: "Asia/Singapore", label: "Asia/Singapore (SGT, UTC+8)" },
-  { value: "Asia/Tokyo", label: "Asia/Tokyo (JST, UTC+9)" },
-  { value: "Europe/London", label: "Europe/London (GMT/BST, UTC+0)" },
-  { value: "Europe/Paris", label: "Europe/Paris (CET/CEST, UTC+1)" },
-  { value: "America/New_York", label: "America/New_York (EST/EDT, UTC-5)" },
-  { value: "America/Chicago", label: "America/Chicago (CST/CDT, UTC-6)" },
-  {
-    value: "America/Los_Angeles",
-    label: "America/Los_Angeles (PST/PDT, UTC-8)",
-  },
-  { value: "Australia/Sydney", label: "Australia/Sydney (AEST/AEDT, UTC+10)" },
-  { value: "UTC", label: "UTC" },
-];
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -49,20 +27,16 @@ export function RegisterPage() {
 
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      timezone: "Asia/Manila",
-    },
   });
 
   const onSubmit = async (data: RegisterInput) => {
     setError(null);
     try {
-      await authApi.register(data);
+      await authApi.register({ ...data, timezone: detectTimezone() });
       navigate("/login");
     } catch (err) {
       setError(
@@ -147,38 +121,6 @@ export function RegisterPage() {
               {errors.password && (
                 <p className="text-xs text-destructive">
                   {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2 text-left">
-              <label
-                htmlFor="timezone"
-                className="text-sm font-medium leading-none"
-              >
-                Timezone
-              </label>
-              <Controller
-                name="timezone"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select timezone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIMEZONES.map((tz) => (
-                        <SelectItem key={tz.value} value={tz.value}>
-                          {tz.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.timezone && (
-                <p className="text-xs text-destructive">
-                  {errors.timezone.message}
                 </p>
               )}
             </div>

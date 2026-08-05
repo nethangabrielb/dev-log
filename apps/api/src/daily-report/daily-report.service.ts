@@ -79,7 +79,7 @@ export class DailyReportService {
         // 3. Fetch today's sessions for this user
         const sessions = await this.getUserSesionsForToday(
           user._id.toString(),
-          user.timezone || 'Asia/Manila',
+          user.timezone || 'Etc/UTC',
         );
 
         // 4. Skip if no sessions today
@@ -146,7 +146,7 @@ export class DailyReportService {
           {
             userId: user._id.toString(),
             date: new Date().toLocaleDateString('en-CA', {
-              timeZone: user.timezone ?? 'Asia/Manila',
+              timeZone: user.timezone ?? 'Etc/UTC',
             }),
           },
           {

@@ -29,7 +29,7 @@ export class ProjectsController {
   @Get('statistics')
   getStatistics(@Req() req: any) {
     const userId = req.user.userId;
-    const timezone = req.user.timezone || 'Asia/Manila';
+    const timezone = req.user.timezone || 'Etc/UTC';
     return this.projectsService.getStatistics(userId, timezone);
   }
 
@@ -42,7 +42,7 @@ export class ProjectsController {
   @Get(':id/stats')
   getStats(@Req() req: any, @Param('id') id: string) {
     const userId = req.user.userId;
-    const timezone = req.query.timezone || 'Asia/Manila';
+    const timezone = req.query.timezone || 'Etc/UTC';
     return this.projectsService.getStats(id, userId, timezone);
   }
 

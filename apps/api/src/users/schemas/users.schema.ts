@@ -15,7 +15,7 @@ export class User {
   @Prop()
   password?: string;
 
-  @Prop({ type: String, default: 'Asia/Manila' })
+  @Prop({ type: String })
   timezone?: string;
 
   @Prop({ type: String, enum: ['local', 'google'], default: 'local' })

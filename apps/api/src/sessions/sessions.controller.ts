@@ -33,14 +33,14 @@ export class SessionsController {
   @Get('streaks')
   getStreaks(@Req() req: any) {
     const userId = req.user.userId;
-    const timezone = req.user.timezone || 'Asia/Manila';
+    const timezone = req.user.timezone || 'Etc/UTC';
     return this.sessionsService.getStreaks(userId, timezone);
   }
 
   @Get('statistics')
   getStatistics(@Req() req: any) {
     const userId = req.user.userId;
-    const timezone = req.user.timezone || 'Asia/Manila';
+    const timezone = req.user.timezone || 'Etc/UTC';
     return this.sessionsService.getStatistics(userId, timezone);
   }
 

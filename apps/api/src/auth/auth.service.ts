@@ -37,17 +37,28 @@ export class AuthService {
   }
 
   login(user: UserDocument) {
-    const payload = { username: user.username, sub: user._id };
+    const payload = {
+      username: user.username,
+      sub: user._id,
+      timezone: user.timezone,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async validateOAuthUser(profile: Profile): Promise<UserDocument | null> {
+  async validateOAuthUser(
+    profile: Profile,
+    timezone?: string,
+  ): Promise<UserDocument | null> {
     const email = profile.emails?.[0]?.value;
 
     let user = await this.usersService.findByGoogleId(profile.id);
     if (user) {
+      if (timezone && user.timezone !== timezone) {
+        await this.usersService.updateTimezone(user._id.toString(), timezone);
+        user.timezone = timezone;
+      }
       return user;
     }
 
@@ -55,6 +66,10 @@ export class AuthService {
       user = await this.usersService.findByIdentifier(email);
       if (user) {
         await this.usersService.setGoogleId(user._id.toString(), profile.id);
+        if (timezone && user.timezone !== timezone) {
+          await this.usersService.updateTimezone(user._id.toString(), timezone);
+          user.timezone = timezone;
+        }
         return user;
       }
 
@@ -63,6 +78,7 @@ export class AuthService {
       return this.usersService.create({
         username,
         email,
+        timezone,
         provider: 'google',
         googleId: profile.id,
       });

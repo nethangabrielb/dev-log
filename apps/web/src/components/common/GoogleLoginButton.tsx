@@ -1,7 +1,14 @@
+import { detectTimezone } from "../../lib/timezone";
+
 export function GoogleLoginButton() {
+  const timezone = detectTimezone();
+  const href = timezone
+    ? `${import.meta.env.VITE_API_URL}/auth/google?timezone=${encodeURIComponent(timezone)}`
+    : `${import.meta.env.VITE_API_URL}/auth/google`;
+
   return (
     <a
-      href={`${import.meta.env.VITE_API_URL}/auth/google`}
+      href={href}
       className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-bg-elevated px-2.5 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
     >
       <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">

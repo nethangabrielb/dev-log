@@ -1,4 +1,5 @@
 import { client } from "./client";
+import { detectTimezone } from "../lib/timezone";
 
 export const authApi = {
   profile: () => client.get("/auth/profile").then((r) => r.data),
@@ -7,6 +8,7 @@ export const authApi = {
       .post("/auth/login", {
         identifier: dto.identifier ?? dto.email,
         password: dto.password,
+        timezone: detectTimezone(),
       })
       .then((r) => r.data),
   logout: () => client.post("/auth/logout").then((r) => r.data),
