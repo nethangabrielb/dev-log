@@ -8,6 +8,7 @@ import {
   IsMongoId,
   ValidateNested,
   IsOptional,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -37,6 +38,7 @@ export class CreateSessionDto {
   type!: SessionType;
 
   @IsInt()
+  @Min(1)
   durationInSeconds!: number;
 
   @IsDate()

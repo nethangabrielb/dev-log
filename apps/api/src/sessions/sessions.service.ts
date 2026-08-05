@@ -27,6 +27,28 @@ export class SessionsService {
 
   // CRUD operations for sessions
   async create(createSessionDto: CreateSessionDto, userId: string) {
+    const { startedAt, endedAt, durationInSeconds } = createSessionDto;
+
+    const started = startedAt.getTime();
+    const ended = endedAt.getTime();
+
+    if (ended <= started) {
+      throw new BadRequestException('endedAt must be after startedAt');
+    }
+
+    if (durationInSeconds > 86400) {
+      throw new BadRequestException(
+        'durationInSeconds cannot exceed 24 hours (86400 seconds)',
+      );
+    }
+
+    const actualDuration = (ended - started) / 1000;
+    if (Math.abs(durationInSeconds - actualDuration) > 5) {
+      throw new BadRequestException(
+        'durationInSeconds does not match the difference between startedAt and endedAt',
+      );
+    }
+
     const createdSession = new this.sessionModel({
       ...createSessionDto,
       userId,
