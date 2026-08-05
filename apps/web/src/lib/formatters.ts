@@ -16,6 +16,15 @@ export function formatDuration(seconds: number): string {
   return `${h}h ${m}m`;
 }
 
+export function formatClock(ms: number): string {
+  const total = Math.floor(Math.max(0, ms) / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
 export function formatDate(iso: string, tz = "Asia/Manila"): string {
   return new Intl.DateTimeFormat("en-PH", {
     timeZone: tz,

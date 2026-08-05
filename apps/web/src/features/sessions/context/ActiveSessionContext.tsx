@@ -17,8 +17,10 @@ import {
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import { getApiErrorMessage } from "@/lib/apiError";
+import { formatClock } from "@/lib/formatters";
 
 const STORAGE_KEY = "devlog-active-session";
+const APP_TITLE = "DevLog";
 
 export interface ActiveSessionState {
   type: SessionType;
@@ -88,6 +90,23 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
+  }, [activeSession]);
+
+  useEffect(() => {
+    if (!activeSession) {
+      document.title = APP_TITLE;
+      return;
+    }
+    const update = () => {
+      const elapsed = Date.now() - activeSession.startedAt.getTime();
+      document.title = `${formatClock(elapsed)} • ${APP_TITLE}`;
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => {
+      clearInterval(interval);
+      document.title = APP_TITLE;
+    };
   }, [activeSession]);
 
   const startSession = useCallback(

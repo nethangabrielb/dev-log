@@ -7,20 +7,11 @@ import {
   StopCircle,
   X,
 } from "lucide-react";
-import { SESSION_TYPE_COLOR } from "@/lib/formatters";
+import { SESSION_TYPE_COLOR, formatClock } from "@/lib/formatters";
 import { useActiveSession } from "../context/ActiveSessionContext";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-function formatClock(ms: number): string {
-  const total = Math.floor(Math.max(0, ms) / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
 
 export function ActiveTimerCard() {
   const {
