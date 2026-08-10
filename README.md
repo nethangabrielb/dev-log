@@ -1,6 +1,6 @@
 # DevLog
 
-A self-hosted developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
+A developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
 
 ## Features
 
