@@ -101,6 +101,10 @@ pnpm dev
 | API | `http://localhost:3000` |
 | Web | `http://localhost:5173` |
 
+## Troubleshooting
+
+- **Login doesn't work (email/password or Google)** — If login fails in every mode, it's most likely your browser, not the app. Tested in Brave: login fails until you turn off Shields for the site (then it works). Try disabling similar privacy/security features (ad blockers, strict cookie blocking) or a different browser.
+
 ## Available Scripts
 
 All scripts run from the monorepo root:
