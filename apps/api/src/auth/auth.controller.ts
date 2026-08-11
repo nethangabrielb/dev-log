@@ -22,6 +22,16 @@ import bcrypt from 'bcryptjs';
 import { Public } from './decorators/public.decorator';
 import { normalizeTimezone } from '../common/timezone.util';
 import { Throttle } from '@nestjs/throttler';
+import type { CookieOptions } from 'express';
+
+const AUTH_COOKIE = 'access_token';
+
+const authCookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 @Controller('auth')
 export class AuthController {
@@ -105,18 +115,14 @@ export class AuthController {
   private issueSession(res: Response, user: UserDocument) {
     const { access_token } = this.authService.login(user);
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie(AUTH_COOKIE, access_token, authCookieOptions);
   }
 
+  @Public()
   @Post('/logout')
   @HttpCode(200)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token');
+    res.clearCookie(AUTH_COOKIE, authCookieOptions);
     return { success: true, message: 'Logged out successfully' };
   }
 

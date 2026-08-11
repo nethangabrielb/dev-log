@@ -15,7 +15,7 @@ export function useAuth() {
   return {
     user: query.data,
     isLoading: query.isLoading,
-    isAuthenticated: !!query.data,
+    isAuthenticated: query.isSuccess,
   };
 }
 
@@ -24,11 +24,20 @@ export function useLogout() {
   return useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
+      queryClient.setQueryData(keys.auth.profile(), undefined);
       queryClient.clear();
       toast.success("Logged out");
       window.location.href = "/";
     },
     onError: (error) => {
+      const status = (error as { response?: { status?: number } }).response
+        ?.status;
+      if (status === 401) {
+        queryClient.clear();
+        toast.success("Logged out");
+        window.location.href = "/";
+        return;
+      }
       toast.error(getApiErrorMessage(error, "Failed to log out"));
     },
   });
