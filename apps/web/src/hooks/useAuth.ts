@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { authApi } from "../api/auth.api";
 import { keys } from "../lib/queryKeys";
@@ -21,14 +20,13 @@ export function useAuth() {
 }
 
 export function useLogout() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
       queryClient.clear();
       toast.success("Logged out");
-      navigate("/", { replace: true });
+      window.location.href = "/";
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, "Failed to log out"));
