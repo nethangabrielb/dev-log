@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type {
-  CreateSessionDto,
-  SessionFilters,
-  SessionStatistics,
+import {
+  type CreateSessionDto,
+  type SessionFilters,
+  type SessionStatistics,
   SessionType,
+  ExportFormat,
+  type ExportRequest,
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import type { Paginated } from "@/api/pagination";
@@ -167,3 +169,40 @@ export function useUpdateSession() {
     },
   });
 }
+
+export function useExportSessions() {
+  return useMutation({
+    mutationFn: async (params: ExportRequest) => {
+      const response = await sessionsApi.export(params);
+      const blob = response.data;
+      const contentDisposition =
+        response.headers?.["content-disposition"] || "";
+      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+      const isMarkdown =
+        params.format === ExportFormat.MARKDOWN ||
+        (params.format as string) === "markdown";
+      const ext = isMarkdown ? "md" : "csv";
+      const filename = filenameMatch
+        ? filenameMatch[1]
+        : `sessions-export.${ext}`;
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return { filename };
+    },
+    onSuccess: (data) => {
+      toast.success(`Exported ${data.filename}`);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to export sessions"));
+    },
+  });
+}
+

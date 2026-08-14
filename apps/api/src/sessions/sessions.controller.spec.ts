@@ -13,6 +13,7 @@ type MockSessionsService = {
   remove: jest.Mock;
   getStreaks: jest.Mock;
   getStatistics: jest.Mock;
+  exportSessions: jest.Mock;
 };
 
 describe('SessionsController', () => {
@@ -39,6 +40,7 @@ describe('SessionsController', () => {
             remove: jest.fn(),
             getStreaks: jest.fn(),
             getStatistics: jest.fn(),
+            exportSessions: jest.fn(),
           },
         },
       ],
@@ -78,10 +80,14 @@ describe('SessionsController', () => {
     await expect(
       controller.findAll({ page: 1, limit: 20 }, req),
     ).resolves.toEqual(sessions);
-    expect(service.findAll).toHaveBeenCalledWith('user-1', {
-      page: 1,
-      limit: 20,
-    });
+    expect(service.findAll).toHaveBeenCalledWith(
+      'user-1',
+      {
+        page: 1,
+        limit: 20,
+      },
+      'Asia/Manila',
+    );
   });
 
   it('should forward filters to the service', async () => {
@@ -96,7 +102,11 @@ describe('SessionsController', () => {
     };
 
     await expect(controller.findAll(filters, req)).resolves.toEqual(sessions);
-    expect(service.findAll).toHaveBeenCalledWith('user-1', filters);
+    expect(service.findAll).toHaveBeenCalledWith(
+      'user-1',
+      filters,
+      'Asia/Manila',
+    );
   });
 
   it('should return session streaks from the service', async () => {
@@ -115,6 +125,34 @@ describe('SessionsController', () => {
 
     await expect(controller.getStatistics(req)).resolves.toEqual(statistics);
     expect(service.getStatistics).toHaveBeenCalledWith('user-1', 'Asia/Manila');
+  });
+
+  it('should stream export sessions from the service', async () => {
+    const { Readable } = await import('stream');
+    const mockStream = Readable.from(['test']);
+    service.exportSessions.mockReturnValue({
+      stream: mockStream,
+      filename: 'sessions-export.csv',
+      contentType: 'text/csv; charset=utf-8',
+    });
+
+    const mockRes = {
+      set: jest.fn(),
+    } as any;
+
+    const query = { format: 'csv' as any };
+    const result = controller.export(query, req, mockRes);
+
+    expect(service.exportSessions).toHaveBeenCalledWith(
+      'user-1',
+      query,
+      'Asia/Manila',
+    );
+    expect(mockRes.set).toHaveBeenCalledWith({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="sessions-export.csv"',
+    });
+    expect(result).toBeDefined();
   });
 
   it('should return a single session from the service', async () => {

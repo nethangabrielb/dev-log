@@ -85,10 +85,31 @@
       "ts"
     ],
     "rootDir": "src",
+    "roots": ["<rootDir>", "<rootDir>/../../../packages/types"],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "module": "commonjs",
+            "target": "ES2023",
+            "moduleResolution": "node",
+            "resolvePackageJsonExports": false,
+            "esModuleInterop": true,
+            "experimentalDecorators": true,
+            "emitDecoratorMetadata": true
+          }
+        }
+      ]
     },
+    "moduleNameMapper": {
+      "^@devlog/types$": "<rootDir>/../../../packages/types/src/index.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!@devlog)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

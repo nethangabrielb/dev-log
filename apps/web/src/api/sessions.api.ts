@@ -5,6 +5,7 @@ import type {
   SessionFilters,
   SessionTodo,
   SessionType,
+  ExportRequest,
 } from "@devlog/types";
 
 export interface Session {
@@ -39,4 +40,10 @@ export const sessionsApi = {
   getStats: () => client.get("/sessions/statistics").then((r) => r.data),
 
   getStreaks: () => client.get("/sessions/streaks").then((r) => r.data),
+
+  export: (params: ExportRequest) =>
+    client.get<Blob>("/sessions/export", {
+      params,
+      responseType: "blob",
+    }),
 };
