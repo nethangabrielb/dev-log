@@ -118,9 +118,10 @@ describe('Sessions Export Integration Test (Real MongoDB)', () => {
     expect(rawCsv).not.toContain(session1Doc._id.toString());
     expect(rawCsv).not.toContain('Late night refactor');
 
-    // Assert Session 2 (12:02 AM Manila on Jan 2) is INCLUDED
+    // Assert Session 2 (12:02 AM Manila on Jan 2) is INCLUDED with local Manila timestamps
     expect(rawCsv).toContain(session2Doc._id.toString());
     expect(rawCsv).toContain('DSA Problem');
+    expect(rawCsv).toContain('2024-01-02 00:02:00,2024-01-02 00:12:00');
     expect(rawCsv).toContain('[x] Binary Tree Traversal; [ ] Graph BFS');
   });
 
@@ -164,9 +165,75 @@ describe('Sessions Export Integration Test (Real MongoDB)', () => {
     expect(rawMarkdown).not.toContain(session1Doc._id.toString());
     expect(rawMarkdown).not.toContain('Late night refactor');
 
-    // Assert Session 2 (12:02 AM Manila on Jan 2) is INCLUDED
+    // Assert Session 2 (12:02 AM Manila on Jan 2) is INCLUDED with local Manila timestamps
     expect(rawMarkdown).toContain(session2Doc._id.toString());
-    expect(rawMarkdown).toContain('| DSA Problem | 600 |');
+    expect(rawMarkdown).toContain('| DSA Problem | 600 | 2024-01-02 00:02:00 | 2024-01-02 00:12:00 |');
     expect(rawMarkdown).toContain('[x] Binary Tree Traversal; [ ] Graph BFS');
+  });
+
+  it('should export 2026-07-13T16:00:00.000Z session as 2026-07-14 00:00:00 in Asia/Manila', async () => {
+    const studySession = await sessionModel.create({
+      userId: testUserId,
+      type: SessionType.STUDY,
+      durationInSeconds: 3600,
+      startedAt: new Date('2026-07-13T16:00:00.000Z'),
+      endedAt: new Date('2026-07-13T17:00:00.000Z'),
+      todos: [{ name: 'Read two pointers guide', completed: true }],
+    });
+
+    const mockResCsv = { set: jest.fn() } as any;
+    const req = {
+      user: {
+        userId: testUserId,
+        timezone: testTimezone,
+      },
+    } as any;
+
+    const streamableFileCsv = controller.export(
+      {
+        format: ExportFormat.CSV,
+        startDate: '2026-07-14',
+        endDate: '2026-07-14',
+      },
+      req,
+      mockResCsv,
+    );
+
+    const streamCsv = streamableFileCsv.getStream();
+    const chunksCsv: Buffer[] = [];
+    for await (const chunk of streamCsv) {
+      chunksCsv.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const rawCsv = Buffer.concat(chunksCsv).toString('utf-8');
+
+    console.log('\n--- RAW EXPORTED CSV (Read two pointers guide) ---\n' + rawCsv);
+
+    expect(rawCsv).toContain(studySession._id.toString());
+    expect(rawCsv).toContain('Study');
+    expect(rawCsv).toContain('2026-07-14 00:00:00,2026-07-14 01:00:00');
+    expect(rawCsv).toContain('[x] Read two pointers guide');
+
+    const mockResMd = { set: jest.fn() } as any;
+    const streamableFileMd = controller.export(
+      {
+        format: ExportFormat.MARKDOWN,
+        startDate: '2026-07-14',
+        endDate: '2026-07-14',
+      },
+      req,
+      mockResMd,
+    );
+
+    const streamMd = streamableFileMd.getStream();
+    const chunksMd: Buffer[] = [];
+    for await (const chunk of streamMd) {
+      chunksMd.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const rawMarkdown = Buffer.concat(chunksMd).toString('utf-8');
+
+    console.log('\n--- RAW EXPORTED MARKDOWN (Read two pointers guide) ---\n' + rawMarkdown);
+
+    expect(rawMarkdown).toContain(studySession._id.toString());
+    expect(rawMarkdown).toContain('| Study | 3600 | 2026-07-14 00:00:00 | 2026-07-14 01:00:00 | [x] Read two pointers guide |');
   });
 });

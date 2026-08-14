@@ -10,7 +10,7 @@ import { ExportSessionDto } from './dto/export-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
-import { fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { PaginationQueryDto } from '../common/pagination-query.dto';
 import { buildPaginatedResult } from '../common/pagination.util';
 import {
@@ -128,9 +128,17 @@ export class SessionsService {
       ? 'text/csv; charset=utf-8'
       : 'text/markdown; charset=utf-8';
 
+    const formatDateInTz = (val: any): string => {
+      if (val === undefined || val === null) return '';
+      if (val instanceof Date) {
+        return formatInTimeZone(val, timezone, 'yyyy-MM-dd HH:mm:ss');
+      }
+      return String(val);
+    };
+
     const escapeCsv = (val: any): string => {
       if (val === undefined || val === null) return '';
-      const str = String(val instanceof Date ? val.toISOString() : val);
+      const str = formatDateInTz(val);
       if (
         str.includes(',') ||
         str.includes('"') ||
@@ -144,7 +152,7 @@ export class SessionsService {
 
     const escapeMd = (val: any): string => {
       if (val === undefined || val === null) return '-';
-      const str = String(val instanceof Date ? val.toISOString() : val).trim();
+      const str = formatDateInTz(val).trim();
       if (!str) return '-';
       return str.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
     };
