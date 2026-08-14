@@ -14,6 +14,7 @@ export interface ExportRequest {
   endDate?: string;
   dateRange?: ExportDateRange;
   sessionType?: SessionType;
+  type?: SessionType;
 }
 
 export interface SessionExportRequest extends ExportRequest {}

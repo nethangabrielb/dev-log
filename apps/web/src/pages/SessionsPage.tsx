@@ -10,6 +10,7 @@ import {
   SessionCard,
   type SessionData,
 } from "../features/sessions/components/SessionCard";
+import { ExportSessionsButton } from "../features/sessions/components/ExportSessionsButton";
 import { StartSessionDialog } from "../features/sessions/components/StartSessionDialog";
 import { useActiveSession } from "../features/sessions/context/ActiveSessionContext";
 import { FilterBar, type FilterValues } from "../components/common/FilterBar";
@@ -69,15 +70,18 @@ export function SessionsPage() {
               Track your coding, study, and project sessions
             </p>
           </div>
-          {!activeSession && (
-            <Button
-              onClick={() => setIsFormOpen(true)}
-              className="gap-2 bg-accent text-accent-fg hover:bg-accent-dim"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Start Session</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-2.5">
+            <ExportSessionsButton filters={filters} />
+            {!activeSession && (
+              <Button
+                onClick={() => setIsFormOpen(true)}
+                className="gap-2 bg-accent text-accent-fg hover:bg-accent-dim"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Start Session</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Filter Bar */}
