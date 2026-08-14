@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SessionsService } from './sessions.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Session } from './schemas/sessions.schema';
-import { LinkedToKind, SessionType } from '@devlog/types';
+import { LinkedToKind, SessionType, ExportFormat } from '@devlog/types';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 
@@ -166,6 +166,121 @@ describe('SessionsService', () => {
     const output = chunks.join('');
     expect(output).toContain('| ID | Type | Duration (s) | Started At | Ended At | Todos | Linked Kind | Linked ID |');
     expect(output).toContain('| session-1 | DSA Problem | 1800 |');
+  });
+
+  it('should exclude session logged at 11:58 PM Asia/Manila when export date range covers only next calendar day (Asia/Manila)', async () => {
+    // 11:58 PM Asia/Manila on 2024-01-01 = 2024-01-01T15:58:00.000Z (Day 1 in Manila)
+    const session1158Pm = {
+      _id: 'session-1158pm',
+      type: SessionType.PROJECT,
+      durationInSeconds: 300,
+      startedAt: new Date('2024-01-01T15:58:00.000Z'),
+      endedAt: new Date('2024-01-01T16:03:00.000Z'),
+      todos: [],
+    };
+
+    const allSessions = [session1158Pm];
+
+    mockSessionModel.find.mockImplementation((query: any) => {
+      const filtered = allSessions.filter((s) => {
+        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte) return false;
+        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte) return false;
+        return true;
+      });
+
+      return {
+        sort: jest.fn().mockReturnValue({
+          cursor: jest.fn().mockImplementation(async function* () {
+            for (const doc of filtered) {
+              yield doc;
+            }
+          }),
+        }),
+      };
+    });
+
+    const result = service.exportSessions(
+      userId,
+      {
+        format: ExportFormat.CSV,
+        startDate: '2024-01-02',
+        endDate: '2024-01-02',
+      },
+      'Asia/Manila',
+    );
+
+    const chunks: string[] = [];
+    for await (const chunk of result.stream) {
+      chunks.push(chunk.toString());
+    }
+    const output = chunks.join('');
+
+    expect(output).not.toContain('session-1158pm');
+    expect(mockSessionModel.find).toHaveBeenCalledWith({
+      userId,
+      startedAt: {
+        $gte: new Date('2024-01-01T16:00:00.000Z'),
+        $lte: new Date('2024-01-02T15:59:59.999Z'),
+      },
+    });
+  });
+
+  it('should include session logged at 12:02 AM Asia/Manila when export date range covers that calendar day (Asia/Manila)', async () => {
+    // 12:02 AM Asia/Manila on 2024-01-02 = 2024-01-01T16:02:00.000Z (Day 2 in Manila)
+    const session1202Am = {
+      _id: 'session-1202am',
+      type: SessionType.DSA,
+      durationInSeconds: 600,
+      startedAt: new Date('2024-01-01T16:02:00.000Z'),
+      endedAt: new Date('2024-01-01T16:12:00.000Z'),
+      todos: [{ name: 'Solve problem', completed: true }],
+    };
+
+    const allSessions = [session1202Am];
+
+    mockSessionModel.find.mockImplementation((query: any) => {
+      const filtered = allSessions.filter((s) => {
+        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte) return false;
+        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte) return false;
+        return true;
+      });
+
+      return {
+        sort: jest.fn().mockReturnValue({
+          cursor: jest.fn().mockImplementation(async function* () {
+            for (const doc of filtered) {
+              yield doc;
+            }
+          }),
+        }),
+      };
+    });
+
+    const result = service.exportSessions(
+      userId,
+      {
+        format: ExportFormat.CSV,
+        startDate: '2024-01-02',
+        endDate: '2024-01-02',
+      },
+      'Asia/Manila',
+    );
+
+    const chunks: string[] = [];
+    for await (const chunk of result.stream) {
+      chunks.push(chunk.toString());
+    }
+    const output = chunks.join('');
+
+    expect(output).toContain('session-1202am');
+    expect(output).toContain('Solve problem');
+    expect(mockSessionModel.find).toHaveBeenCalledWith({
+      userId,
+      startedAt: {
+        $gte: new Date('2024-01-01T16:00:00.000Z'),
+        $lte: new Date('2024-01-02T15:59:59.999Z'),
+      },
+    });
   });
 
   it('should return a single session by id for a user', async () => {
