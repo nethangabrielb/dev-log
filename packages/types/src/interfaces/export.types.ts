@@ -13,7 +13,6 @@ export interface ExportRequest {
   startDate?: string;
   endDate?: string;
   dateRange?: ExportDateRange;
-  sessionType?: SessionType;
   type?: SessionType;
 }
 

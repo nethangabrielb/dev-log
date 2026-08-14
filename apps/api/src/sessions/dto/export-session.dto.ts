@@ -10,10 +10,6 @@ export class ExportSessionDto {
   type?: SessionType;
 
   @IsOptional()
-  @IsEnum(SessionType)
-  sessionType?: SessionType;
-
-  @IsOptional()
   @IsDateString()
   startDate?: string;
 

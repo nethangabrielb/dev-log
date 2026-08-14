@@ -102,9 +102,8 @@ export class SessionsService {
     filters: ExportSessionDto,
     timezone = 'Etc/UTC',
   ) {
-    const sessionType = filters.type ?? filters.sessionType;
     const query: Record<string, any> = { userId };
-    if (sessionType) query.type = sessionType;
+    if (filters.type) query.type = filters.type;
     if (filters.startDate) {
       query.startedAt = {
         ...(query.startedAt ?? {}),
