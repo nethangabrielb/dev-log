@@ -2,6 +2,8 @@
 
 A developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
 
+**Live:** https://https://developer-logs.netlify.app
+
 ## Features
 
 - **Live session timer** — start/stop coding sessions with an inline todo checklist and link each session to a project, DSA problem, or article. Timer state persists to `localStorage` so tracked time survives network drops or accidental tab closes.
