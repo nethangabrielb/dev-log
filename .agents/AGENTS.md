@@ -17,7 +17,7 @@ pnpm monorepo. `apps/api` (NestJS 11 + MongoDB/Mongoose + BullMQ), `apps/web` (R
 - `apps/api/src/auth/` — JWT via httpOnly cookie; global `ValidationPipe({ transform: true })`; CORS locked to `http://localhost:5173`
 - `apps/api/src/daily-report/` — BullMQ processor + scheduler (background jobs), not a plain request handler
 - `packages/types` — single source of truth, imported as `@devlog/types`; never redefine types/enums in apps
-- `apps/web/` — see `apps/web/AGENTS.md`; skills in `apps/web/.agents/skills/` auto-trigger
+- `apps/web/` — see `apps/web/AGENTS.md`; skills in `.agents/skills/` auto-trigger
 
 ## Boundaries
 
