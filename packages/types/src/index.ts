@@ -3,6 +3,7 @@ export * from "./enums/session.enum.js";
 export * from "./enums/snippets.enum.js";
 export * from "./enums/projects.enum.js";
 export * from "./enums/articles.enum.js";
+export * from "./enums/export.enum.js";
 
 export * from "./interfaces/session.types.js";
 export * from "./interfaces/sessionStatistics.types.js";
@@ -11,3 +12,5 @@ export * from "./interfaces/projectStatistics.types.js";
 export * from "./interfaces/projectsStatistics.types.js";
 export * from "./interfaces/articlesStatistics.types.js";
 export * from "./interfaces/dashboard.types.js";
+export * from "./interfaces/export.types.js";
+
