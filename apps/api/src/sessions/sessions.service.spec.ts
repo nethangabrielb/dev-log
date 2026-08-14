@@ -69,10 +69,103 @@ describe('SessionsService', () => {
 
   it('should return all sessions for a user', async () => {
     const sessions = [{ id: 'session-1' }, { id: 'session-2' }];
-    mockSessionModel.find.mockReturnValue(createQueryResult(sessions));
+    mockSessionModel.find.mockReturnValue({
+      sort: jest.fn().mockReturnValue({
+        skip: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue(sessions),
+          }),
+        }),
+      }),
+    });
+    mockSessionModel.countDocuments.mockResolvedValue(2);
 
-    await expect(service.findAll(userId)).resolves.toEqual(sessions);
+    const result = await service.findAll(userId);
+    expect(result.data).toEqual(sessions);
     expect(mockSessionModel.find).toHaveBeenCalledWith({ userId });
+  });
+
+  it('should export sessions as CSV stream', async () => {
+    const sessionDocs = [
+      {
+        _id: 'session-1',
+        type: SessionType.PROJECT,
+        durationInSeconds: 3600,
+        startedAt: new Date('2024-01-01T10:00:00.000Z'),
+        endedAt: new Date('2024-01-01T11:00:00.000Z'),
+        todos: [{ name: 'Task 1', completed: true }],
+        linkedTo: { kind: LinkedToKind.PROJECT, id: validId },
+      },
+    ];
+
+    async function* mockCursor() {
+      for (const doc of sessionDocs) {
+        yield doc;
+      }
+    }
+
+    mockSessionModel.find.mockReturnValue({
+      sort: jest.fn().mockReturnValue({
+        cursor: jest.fn().mockImplementation(mockCursor),
+      }),
+    });
+
+    const result = service.exportSessions(userId, {
+      format: 'csv' as any,
+    });
+
+    expect(result.filename).toBe('sessions-export.csv');
+    expect(result.contentType).toBe('text/csv; charset=utf-8');
+
+    const chunks: string[] = [];
+    for await (const chunk of result.stream) {
+      chunks.push(chunk.toString());
+    }
+    const output = chunks.join('');
+    expect(output).toContain('ID,Type,Duration (Seconds),Started At,Ended At,Todos,Linked Kind,Linked ID');
+    expect(output).toContain('session-1');
+    expect(output).toContain('[x] Task 1');
+  });
+
+  it('should export sessions as Markdown table stream', async () => {
+    const sessionDocs = [
+      {
+        _id: 'session-1',
+        type: SessionType.DSA,
+        durationInSeconds: 1800,
+        startedAt: new Date('2024-01-01T10:00:00.000Z'),
+        endedAt: new Date('2024-01-01T10:30:00.000Z'),
+        todos: [],
+      },
+    ];
+
+    async function* mockCursor() {
+      for (const doc of sessionDocs) {
+        yield doc;
+      }
+    }
+
+    mockSessionModel.find.mockReturnValue({
+      sort: jest.fn().mockReturnValue({
+        cursor: jest.fn().mockImplementation(mockCursor),
+      }),
+    });
+
+    const result = service.exportSessions(userId, {
+      format: 'markdown' as any,
+      type: SessionType.DSA,
+    });
+
+    expect(result.filename).toBe('sessions-export.md');
+    expect(result.contentType).toBe('text/markdown; charset=utf-8');
+
+    const chunks: string[] = [];
+    for await (const chunk of result.stream) {
+      chunks.push(chunk.toString());
+    }
+    const output = chunks.join('');
+    expect(output).toContain('| ID | Type | Duration (s) | Started At | Ended At | Todos | Linked Kind | Linked ID |');
+    expect(output).toContain('| session-1 | DSA Problem | 1800 |');
   });
 
   it('should return a single session by id for a user', async () => {

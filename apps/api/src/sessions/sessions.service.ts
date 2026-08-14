@@ -3,8 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Readable } from 'stream';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { ExportSessionDto } from './dto/export-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
@@ -20,6 +22,7 @@ import {
   SessionStatistics,
   SessionFilters,
   SessionType,
+  ExportFormat,
 } from '@devlog/types';
 
 @Injectable()
@@ -92,6 +95,100 @@ export class SessionsService {
     ]);
 
     return buildPaginatedResult(data, total, page, limit);
+  }
+
+  exportSessions(
+    userId: string,
+    filters: ExportSessionDto,
+    timezone = 'Etc/UTC',
+  ) {
+    const sessionType = filters.type ?? filters.sessionType;
+    const query: Record<string, any> = { userId };
+    if (sessionType) query.type = sessionType;
+    if (filters.startDate) {
+      query.startedAt = {
+        ...(query.startedAt ?? {}),
+        $gte: fromZonedTime(`${filters.startDate}T00:00:00.000`, timezone),
+      };
+    }
+    if (filters.endDate) {
+      query.startedAt = {
+        ...(query.startedAt ?? {}),
+        $lte: fromZonedTime(`${filters.endDate}T23:59:59.999`, timezone),
+      };
+    }
+
+    const cursor = this.sessionModel
+      .find(query)
+      .sort({ startedAt: -1 })
+      .cursor();
+
+    const isCsv = filters.format === ExportFormat.CSV;
+    const filename = isCsv ? 'sessions-export.csv' : 'sessions-export.md';
+    const contentType = isCsv
+      ? 'text/csv; charset=utf-8'
+      : 'text/markdown; charset=utf-8';
+
+    const escapeCsv = (val: any): string => {
+      if (val === undefined || val === null) return '';
+      const str = String(val instanceof Date ? val.toISOString() : val);
+      if (
+        str.includes(',') ||
+        str.includes('"') ||
+        str.includes('\n') ||
+        str.includes('\r')
+      ) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const escapeMd = (val: any): string => {
+      if (val === undefined || val === null) return '-';
+      const str = String(val instanceof Date ? val.toISOString() : val).trim();
+      if (!str) return '-';
+      return str.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+    };
+
+    async function* generateRows() {
+      if (isCsv) {
+        yield 'ID,Type,Duration (Seconds),Started At,Ended At,Todos,Linked Kind,Linked ID\n';
+        for await (const doc of cursor) {
+          const todosStr = (doc.todos || [])
+            .map((t: any) => `${t.completed ? '[x]' : '[ ]'} ${t.name}`)
+            .join('; ');
+          const linkedKind = doc.linkedTo?.kind || '';
+          const linkedId = doc.linkedTo?.id || '';
+
+          yield [
+            escapeCsv(doc._id),
+            escapeCsv(doc.type),
+            escapeCsv(doc.durationInSeconds),
+            escapeCsv(doc.startedAt),
+            escapeCsv(doc.endedAt),
+            escapeCsv(todosStr),
+            escapeCsv(linkedKind),
+            escapeCsv(linkedId),
+          ].join(',') + '\n';
+        }
+      } else {
+        yield '| ID | Type | Duration (s) | Started At | Ended At | Todos | Linked Kind | Linked ID |\n';
+        yield '| --- | --- | --- | --- | --- | --- | --- | --- |\n';
+        for await (const doc of cursor) {
+          const todosStr = (doc.todos || [])
+            .map((t: any) => `${t.completed ? '[x]' : '[ ]'} ${t.name}`)
+            .join('; ');
+          const linkedKind = doc.linkedTo?.kind || '';
+          const linkedId = doc.linkedTo?.id || '';
+
+          yield `| ${escapeMd(doc._id)} | ${escapeMd(doc.type)} | ${escapeMd(doc.durationInSeconds)} | ${escapeMd(doc.startedAt)} | ${escapeMd(doc.endedAt)} | ${escapeMd(todosStr)} | ${escapeMd(linkedKind)} | ${escapeMd(linkedId)} |\n`;
+        }
+      }
+    }
+
+    const stream = Readable.from(generateRows());
+
+    return { stream, filename, contentType };
   }
 
   async findOne(id: string, userId: string) {

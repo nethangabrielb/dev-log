@@ -8,11 +8,15 @@ import {
   Delete,
   Query,
   Req,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { SessionFiltersDto } from './dto/session-filters.dto';
+import { ExportSessionDto } from './dto/export-session.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -43,6 +47,26 @@ export class SessionsController {
     const userId = req.user.userId;
     const timezone = req.user.timezone || 'Etc/UTC';
     return this.sessionsService.getStatistics(userId, timezone);
+  }
+
+  @Get('export')
+  export(
+    @Query() query: ExportSessionDto,
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userId = req.user.userId;
+    const timezone = req.user.timezone || 'Etc/UTC';
+
+    const { stream, filename, contentType } =
+      this.sessionsService.exportSessions(userId, query, timezone);
+
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+
+    return new StreamableFile(stream);
   }
 
   @Get(':id')
