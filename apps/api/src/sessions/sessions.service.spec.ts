@@ -402,4 +402,27 @@ describe('SessionsService', () => {
     });
     expect(statistics.currentStreak).toBe(2);
   });
+
+  it('should return continuous daily activity array with zero-filled inactive days', async () => {
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: timezone,
+    });
+
+    mockSessionModel.aggregate.mockResolvedValueOnce([
+      { _id: today, count: 2, totalDuration: 3600 },
+    ]);
+
+    const activity = await service.getDailyActivity(userId, timezone, 7);
+
+    expect(activity).toHaveLength(7);
+    const todayEntry = activity.find((a) => a.date === today);
+    expect(todayEntry).toEqual({
+      date: today,
+      count: 2,
+      totalDuration: 3600,
+    });
+
+    const inactiveEntries = activity.filter((a) => a.date !== today);
+    expect(inactiveEntries.every((a) => a.count === 0 && a.totalDuration === 0)).toBe(true);
+  });
 });

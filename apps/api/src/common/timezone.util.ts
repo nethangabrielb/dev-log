@@ -1,3 +1,6 @@
+import { addDays, format, startOfDay, subDays } from 'date-fns';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+
 const SUPPORTED_TIMEZONES: ReadonlySet<string> = (() => {
   try {
     const zones: string[] =
@@ -30,4 +33,31 @@ export function isValidTimezone(timezone: string): boolean {
 export function normalizeTimezone(timezone?: string | null): string {
   if (timezone && isValidTimezone(timezone)) return timezone;
   return DEFAULT_TIMEZONE;
+}
+
+export interface ZonedDateListResult {
+  dateList: string[];
+  startDateUtc: Date;
+}
+
+/**
+ * Generates an array of continuous date strings ('YYYY-MM-DD') in the specified timezone,
+ * ending on referenceDate's calendar day in that timezone.
+ */
+export function generateZonedDateList(
+  timezone: string,
+  daysCount: number = 365,
+  referenceDate: Date = new Date(),
+): ZonedDateListResult {
+  const zonedNow = toZonedTime(referenceDate, timezone);
+  const zonedToday = startOfDay(zonedNow);
+  const zonedStartDate = subDays(zonedToday, daysCount - 1);
+  const startDateUtc = fromZonedTime(zonedStartDate, timezone);
+
+  const dateList = Array.from({ length: daysCount }, (_, i) => {
+    const zonedDay = addDays(zonedStartDate, i);
+    return format(zonedDay, 'yyyy-MM-dd');
+  });
+
+  return { dateList, startDateUtc };
 }
