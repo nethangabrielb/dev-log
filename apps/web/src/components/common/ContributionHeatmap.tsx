@@ -93,19 +93,19 @@ export function ContributionHeatmap({
         </div>
       ) : (
         <div className="overflow-x-auto pb-2 pt-1 scrollbar-thin">
-          <div className="inline-block min-w-full">
+          <div className="min-w-[760px] w-full">
             {/* Month Labels Row */}
-            <div className="flex items-center mb-1.5 pl-8">
+            <div className="flex items-center mb-1.5 pl-6 sm:pl-7">
               <div
-                className="grid auto-cols-[13px] gap-[3px]"
+                className="w-full grid gap-[3px] sm:gap-1"
                 style={{
-                  gridTemplateColumns: `repeat(${weeks.length}, 13px)`,
+                  gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
                 }}
               >
                 {monthHeaders.map((header) => (
                   <span
                     key={`${header.label}-${header.weekIndex}`}
-                    className="text-[10px] font-mono text-text-muted leading-none select-none"
+                    className="text-[10px] sm:text-xs font-mono text-text-muted leading-none select-none"
                     style={{
                       gridColumnStart: header.weekIndex + 1,
                     }}
@@ -117,23 +117,23 @@ export function ContributionHeatmap({
             </div>
 
             {/* Main 7-Row Grid with Day-of-Week Labels */}
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-1.5 sm:gap-2">
               {/* Day of Week Labels (Y-Axis) */}
-              <div className="grid grid-rows-7 gap-[3px] text-[9px] font-mono text-text-muted select-none pt-[1px] w-6 text-right">
-                <span className="h-[13px] leading-[13px]"></span>
-                <span className="h-[13px] leading-[13px]">Mon</span>
-                <span className="h-[13px] leading-[13px]"></span>
-                <span className="h-[13px] leading-[13px]">Wed</span>
-                <span className="h-[13px] leading-[13px]"></span>
-                <span className="h-[13px] leading-[13px]">Fri</span>
-                <span className="h-[13px] leading-[13px]"></span>
+              <div className="grid grid-rows-7 gap-[3px] sm:gap-1 text-[9px] sm:text-[10px] font-mono text-text-muted select-none w-5 sm:w-6 text-right">
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Mon</span>
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Wed</span>
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Fri</span>
+                <span className="aspect-square flex items-center justify-end"></span>
               </div>
 
               {/* 53 Column Week Grid */}
               <div
-                className="grid auto-cols-[13px] gap-[3px] grid-flow-col"
+                className="w-full grid gap-[3px] sm:gap-1 grid-flow-col"
                 style={{
-                  gridTemplateColumns: `repeat(${weeks.length}, 13px)`,
+                  gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
                 }}
                 role="grid"
                 aria-label="Contribution Activity Heatmap"
@@ -141,7 +141,7 @@ export function ContributionHeatmap({
                 {weeks.map((week, weekIdx) => (
                   <div
                     key={`week-${weekIdx}`}
-                    className="grid grid-rows-7 gap-[3px]"
+                    className="grid grid-rows-7 gap-[3px] sm:gap-1"
                     role="row"
                   >
                     {week.map((cell) => {
@@ -149,7 +149,7 @@ export function ContributionHeatmap({
                         return (
                           <div
                             key={cell.date}
-                            className="w-[13px] h-[13px] opacity-0 pointer-events-none"
+                            className="w-full aspect-square opacity-0 pointer-events-none"
                             aria-hidden="true"
                           />
                         );
@@ -177,7 +177,7 @@ export function ContributionHeatmap({
                             });
                           }}
                           onMouseLeave={() => setHoveredCell(null)}
-                          className={`w-[13px] h-[13px] rounded-[2.5px] transition-all cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
+                          className={`w-full aspect-square rounded-[2.5px] sm:rounded-[3.5px] transition-all cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
                         />
                       );
                     })}
