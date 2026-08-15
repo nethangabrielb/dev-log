@@ -91,6 +91,10 @@ export interface HeatmapGridData {
   monthHeaders: MonthHeader[];
   totalSeconds: number;
   activeDaysCount: number;
+  dailyAverageSeconds: number;
+  longestStreak: number;
+  currentStreak: number;
+  bestDay: { date: string; totalDuration: number } | null;
 }
 
 /**
@@ -107,6 +111,7 @@ export function buildHeatmapGrid(
   const dataMap = new Map<string, DailyActivityPoint>();
   let totalSeconds = 0;
   let activeDaysCount = 0;
+  let bestDay: { date: string; totalDuration: number } | null = null;
 
   for (const point of data) {
     if (point && point.date) {
@@ -114,6 +119,9 @@ export function buildHeatmapGrid(
       if (point.totalDuration > 0) {
         totalSeconds += point.totalDuration;
         activeDaysCount += 1;
+        if (!bestDay || point.totalDuration > bestDay.totalDuration) {
+          bestDay = { date: point.date, totalDuration: point.totalDuration };
+        }
       }
     }
   }
@@ -136,6 +144,11 @@ export function buildHeatmapGrid(
   let lastLabeledMonth = -1;
   let lastLabeledWeekIndex = -10;
 
+  // Track streaks across chronological in-range days
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let tempStreak = 0;
+
   for (let w = 0; w < numWeeks; w++) {
     const week: HeatmapCell[] = [];
 
@@ -148,6 +161,17 @@ export function buildHeatmapGrid(
       const activity = dataMap.get(dateStr);
       const totalDuration = activity?.totalDuration ?? 0;
       const count = activity?.count ?? 0;
+
+      if (inRange) {
+        if (totalDuration > 0) {
+          tempStreak += 1;
+          if (tempStreak > longestStreak) {
+            longestStreak = tempStreak;
+          }
+        } else {
+          tempStreak = 0;
+        }
+      }
 
       // Track month label on the first day of each week or when a new month begins
       const monthIndex = currentZonedDay.getMonth();
@@ -178,10 +202,18 @@ export function buildHeatmapGrid(
     weeks.push(week);
   }
 
+  currentStreak = tempStreak;
+  const dailyAverageSeconds =
+    activeDaysCount > 0 ? Math.round(totalSeconds / activeDaysCount) : 0;
+
   return {
     weeks,
     monthHeaders,
     totalSeconds,
     activeDaysCount,
+    dailyAverageSeconds,
+    longestStreak,
+    currentStreak,
+    bestDay,
   };
 }
