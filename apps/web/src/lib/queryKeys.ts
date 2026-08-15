@@ -7,6 +7,7 @@ export const keys = {
     one: (id: string) => ["sessions", id] as const,
     stats: () => ["sessions", "stats"] as const,
     streaks: () => ["sessions", "streaks"] as const,
+    activity: (days?: number) => ["sessions", "activity", days ?? 365] as const,
   },
   dsa: {
     all: (filters?: object) => ["dsa", filters ?? {}] as const,

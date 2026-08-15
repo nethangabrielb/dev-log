@@ -7,6 +7,7 @@ import {
   SessionType,
   ExportFormat,
   type ExportRequest,
+  type DailyActivityPoint,
 } from "@devlog/types";
 import { sessionsApi } from "@/api/sessions.api";
 import type { Paginated, Pagination } from "@/api/pagination";
@@ -87,6 +88,13 @@ export function useSessionStreaks() {
   return useQuery<SessionStreak[]>({
     queryKey: keys.sessions.streaks(),
     queryFn: sessionsApi.getStreaks,
+  });
+}
+
+export function useSessionActivity(days: number = 365) {
+  return useQuery<DailyActivityPoint[]>({
+    queryKey: keys.sessions.activity(days),
+    queryFn: () => sessionsApi.getActivity(days),
   });
 }
 
