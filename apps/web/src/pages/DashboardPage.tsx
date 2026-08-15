@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -8,18 +9,51 @@ import {
   Cell,
 } from "recharts";
 import { Clock, Flame, Activity, AlertCircle, RefreshCw, Timer } from "lucide-react";
-import { useSessionStats } from "@/features/sessions/hooks/useSessions";
+import {
+  useSessions,
+  useSessionStats,
+  useDeleteSession,
+  useUpdateSession,
+} from "@/features/sessions/hooks/useSessions";
 import { useDsaStats } from "@/features/dsa/hooks/useDsaStats";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboard";
+import { CopyStandupButton } from "@/features/sessions/components/CopyStandupButton";
+import {
+  SessionCard,
+  type SessionData,
+} from "@/features/sessions/components/SessionCard";
 import { StatCard } from "@/components/common/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorMessage } from "@/lib/apiError";
 import { formatDuration, SESSION_TYPE_COLOR } from "@/lib/formatters";
-import { SessionType } from "@devlog/types";
+import { SessionType, type SessionTodo } from "@devlog/types";
 
 export function DashboardPage() {
+  const todayStr = useMemo(() => {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Manila",
+    }).format(new Date());
+  }, []);
+
+  const {
+    data: todaySessionsData,
+    isLoading: isTodaySessionsLoading,
+    isError: isTodaySessionsError,
+    error: todaySessionsError,
+    refetch: refetchTodaySessions,
+  } = useSessions({
+    startDate: todayStr,
+    endDate: todayStr,
+    limit: 100,
+  });
+
+  const { mutate: deleteSession } = useDeleteSession();
+  const { mutate: updateSession } = useUpdateSession();
+
+  const todaySessions = (todaySessionsData?.data || []) as SessionData[];
+
   const {
     data: sessionStats,
     isLoading: isStatsLoading,
@@ -41,15 +75,21 @@ export function DashboardPage() {
     refetch: refetchDashboard,
   } = useDashboardStats();
 
-  // Combine query loading states without full page spinner
-  const isLoading = isStatsLoading || isDsaLoading || isDashboardLoading;
+  const isLoading =
+    isStatsLoading ||
+    isDsaLoading ||
+    isDashboardLoading ||
+    isTodaySessionsLoading;
 
-  const isError = isStatsError || isDsaError || isDashboardError;
-  const error = statsError ?? dsaError ?? dashboardError;
+  const isError =
+    isStatsError || isDsaError || isDashboardError || isTodaySessionsError;
+  const error =
+    statsError ?? dsaError ?? dashboardError ?? todaySessionsError;
   const retry = () => {
     refetchStats();
     refetchDsa();
     refetchDashboard();
+    refetchTodaySessions();
   };
 
   // Today's duration & session count from dashboard endpoint
@@ -74,6 +114,14 @@ export function DashboardPage() {
       hours: +(durationInSeconds / 3600).toFixed(1),
     };
   });
+
+  const handleDelete = (id: string) => {
+    deleteSession(id);
+  };
+
+  const handleToggleTodo = (sessionId: string, todos: SessionTodo[]) => {
+    updateSession({ id: sessionId, dto: { todos } });
+  };
 
   return (
     <div className="p-6 space-y-6 min-h-screen bg-background text-foreground">
@@ -150,6 +198,65 @@ export function DashboardPage() {
             />
           </>
         ) : null}
+      </div>
+
+      {/* Today's Activity & Standup Section */}
+      <div className="p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-semibold tracking-tight">
+              Today&apos;s Sessions
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {todaySessions.length === 0
+                ? "No sessions recorded today yet"
+                : `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} recorded today (${formatDuration(todaysDuration)})`}
+            </p>
+          </div>
+          <CopyStandupButton
+            sessions={todaySessions}
+            isLoading={isTodaySessionsLoading}
+          />
+        </div>
+
+        {isTodaySessionsLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 2 }).map((_, idx) => (
+              <Card key={idx}>
+                <CardContent className="space-y-2 py-4">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-24 rounded" />
+                    <Skeleton className="h-5 w-16 rounded" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : todaySessions.length === 0 ? (
+          <div className="py-8 text-center border border-dashed rounded-lg border-border-subtle">
+            <Clock
+              className="h-8 w-8 mx-auto mb-2 opacity-40"
+              style={{ color: "var(--devlog-text-muted)" }}
+            />
+            <p className="text-sm font-medium text-muted-foreground">
+              No sessions recorded today
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Start a timer on the Sessions page to track your work
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {todaySessions.map((session) => (
+              <SessionCard
+                key={session._id || session.id}
+                session={session}
+                onDelete={handleDelete}
+                onToggleTodo={handleToggleTodo}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Time by SessionType Bar Chart */}

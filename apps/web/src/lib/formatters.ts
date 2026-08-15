@@ -45,3 +45,9 @@ export function formatRelativeDay(dateStr: string): string {
     day: "numeric",
   });
 }
+
+export {
+  formatStandupSummary,
+  type StandupSessionItem,
+  type FormatStandupOptions,
+} from "@/features/sessions/utils/standupFormatter";
