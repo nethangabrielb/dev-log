@@ -178,7 +178,17 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Top 4 Stat Cards */}
+      {/* 1. Prominent 365-Day Activity Heatmap (Hero Section) */}
+      {!isError && (
+        <ContributionHeatmap
+          data={activityData}
+          loading={isActivityLoading}
+          title="Activity Calendar"
+          subtitle="Daily focus time recorded over the past 365 days"
+        />
+      )}
+
+      {/* 2. Top 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, idx) => (
@@ -220,148 +230,141 @@ export function DashboardPage() {
         ) : null}
       </div>
 
-      {/* Today's Activity & Standup Section */}
-      <div className="p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
-        <div className="flex items-center justify-between gap-4">
+      {/* 3. Two-Column Split: Today's Sessions (Left) + Weekly Bar Chart (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Today's Activity & Standup Section */}
+        <div className="lg:col-span-7 p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-semibold tracking-tight">
+                Today&apos;s Sessions
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {todaySessions.length === 0
+                  ? "No sessions recorded today yet"
+                  : `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} recorded today (${formatDuration(todaysDuration)})`}
+              </p>
+            </div>
+            <CopyStandupButton
+              sessions={todaySessions}
+              isLoading={isTodaySessionsLoading}
+            />
+          </div>
+
+          {isTodaySessionsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 2 }).map((_, idx) => (
+                <Card key={idx}>
+                  <CardContent className="space-y-2 py-4">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-5 w-24 rounded" />
+                      <Skeleton className="h-5 w-16 rounded" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : todaySessions.length === 0 ? (
+            <div className="py-8 text-center border border-dashed rounded-lg border-border-subtle">
+              <Clock
+                className="h-8 w-8 mx-auto mb-2 opacity-40"
+                style={{ color: "var(--devlog-text-muted)" }}
+              />
+              <p className="text-sm font-medium text-muted-foreground">
+                No sessions recorded today
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Start a timer on the Sessions page to track your work
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {todaySessions.map((session) => (
+                <SessionCard
+                  key={session._id || session.id}
+                  session={session}
+                  onDelete={handleDelete}
+                  onToggleTodo={handleToggleTodo}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Time by SessionType Bar Chart */}
+        <div className="lg:col-span-5 p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
           <div>
             <h3 className="text-base font-semibold tracking-tight">
-              Today&apos;s Sessions
+              Time Spent by Session Type
             </h3>
             <p className="text-xs text-muted-foreground">
-              {todaySessions.length === 0
-                ? "No sessions recorded today yet"
-                : `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"} recorded today (${formatDuration(todaysDuration)})`}
+              Distribution of logged time across category types this week
             </p>
           </div>
-          <CopyStandupButton
-            sessions={todaySessions}
-            isLoading={isTodaySessionsLoading}
-          />
-        </div>
 
-        {isTodaySessionsLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 2 }).map((_, idx) => (
-              <Card key={idx}>
-                <CardContent className="space-y-2 py-4">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-5 w-24 rounded" />
-                    <Skeleton className="h-5 w-16 rounded" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : todaySessions.length === 0 ? (
-          <div className="py-8 text-center border border-dashed rounded-lg border-border-subtle">
-            <Clock
-              className="h-8 w-8 mx-auto mb-2 opacity-40"
-              style={{ color: "var(--devlog-text-muted)" }}
-            />
-            <p className="text-sm font-medium text-muted-foreground">
-              No sessions recorded today
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Start a timer on the Sessions page to track your work
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {todaySessions.map((session) => (
-              <SessionCard
-                key={session._id || session.id}
-                session={session}
-                onDelete={handleDelete}
-                onToggleTodo={handleToggleTodo}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Time by SessionType Bar Chart */}
-      <div className="p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
-        <div>
-          <h3 className="text-base font-semibold tracking-tight">
-            Time Spent by Session Type
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Distribution of logged time across category types this week
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="h-64 flex items-end gap-4 pt-8 px-4">
-            <Skeleton className="h-2/3 flex-1 rounded-t" />
-            <Skeleton className="h-full flex-1 rounded-t" />
-            <Skeleton className="h-1/2 flex-1 rounded-t" />
-            <Skeleton className="h-3/4 flex-1 rounded-t" />
-            <Skeleton className="h-1/3 flex-1 rounded-t" />
-          </div>
-        ) : !isError ? (
-          <div className="h-72 w-full pt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis
-                  dataKey="type"
-                  stroke="var(--devlog-text-secondary)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: "var(--devlog-border)" }}
-                />
-                <YAxis
-                  stroke="var(--devlog-text-secondary)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: "var(--devlog-border)" }}
-                  unit="h"
-                />
-                <Tooltip
-                  cursor={{ fill: "var(--devlog-bg-hover)" }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      const color =
-                        SESSION_TYPE_COLOR[data.type as SessionType] ||
-                        "var(--devlog-accent)";
-                      return (
-                        <div className="p-3 rounded-lg border border-border bg-bg-elevated text-foreground text-xs shadow-lg space-y-1">
-                          <p className="font-semibold">{data.type}</p>
-                          <p style={{ color }}>
-                            Duration: {data.formatted} ({data.hours} hrs)
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry) => (
-                    <Cell
-                      key={entry.type}
-                      fill={
-                        SESSION_TYPE_COLOR[entry.type as SessionType] ||
-                        "var(--devlog-accent)"
+          {isLoading ? (
+            <div className="h-64 flex items-end gap-4 pt-8 px-4">
+              <Skeleton className="h-2/3 flex-1 rounded-t" />
+              <Skeleton className="h-full flex-1 rounded-t" />
+              <Skeleton className="h-1/2 flex-1 rounded-t" />
+              <Skeleton className="h-3/4 flex-1 rounded-t" />
+              <Skeleton className="h-1/3 flex-1 rounded-t" />
+            </div>
+          ) : !isError ? (
+            <div className="h-72 w-full pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis
+                    dataKey="type"
+                    stroke="var(--devlog-text-secondary)"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={{ stroke: "var(--devlog-border)" }}
+                  />
+                  <YAxis
+                    stroke="var(--devlog-text-secondary)"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={{ stroke: "var(--devlog-border)" }}
+                    unit="h"
+                  />
+                  <Tooltip
+                    cursor={{ fill: "var(--devlog-bg-hover)" }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const color =
+                          SESSION_TYPE_COLOR[data.type as SessionType] ||
+                          "var(--devlog-accent)";
+                        return (
+                          <div className="p-3 rounded-lg border border-border bg-bg-elevated text-foreground text-xs shadow-lg space-y-1">
+                            <p className="font-semibold">{data.type}</p>
+                            <p style={{ color }}>
+                              Duration: {data.formatted} ({data.hours} hrs)
+                            </p>
+                          </div>
+                        );
                       }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : null}
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry) => (
+                      <Cell
+                        key={entry.type}
+                        fill={
+                          SESSION_TYPE_COLOR[entry.type as SessionType] ||
+                          "var(--devlog-accent)"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : null}
+        </div>
       </div>
-
-      {/* 365-Day GitHub-Style Activity Heatmap */}
-      {!isError && (
-        <ContributionHeatmap
-          data={activityData}
-          loading={isActivityLoading}
-          title="Activity Calendar"
-          subtitle="Daily focus time recorded over the past 365 days"
-        />
-      )}
     </div>
   );
 }
