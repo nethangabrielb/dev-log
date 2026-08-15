@@ -16,19 +16,28 @@ export interface ContributionHeatmapProps {
   className?: string;
 }
 
-const LEVEL_CLASS_MAP: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-bg-elevated/70 border border-border-subtle/50 hover:border-border",
-  1: "bg-[rgba(201,118,47,0.22)] border border-[rgba(201,118,47,0.35)]",
-  2: "bg-[rgba(201,118,47,0.48)] border border-[rgba(201,118,47,0.60)]",
-  3: "bg-[rgba(201,118,47,0.75)] border border-[rgba(201,118,47,0.85)]",
-  4: "bg-accent border border-[rgba(232,232,240,0.30)] shadow-[0_0_8px_rgba(201,118,47,0.25)]",
+const LEVEL_STYLE_MAP: Record<
+  0 | 1 | 2 | 3 | 4,
+  { fill: string; stroke: string }
+> = {
+  0: { fill: "#1c1c21", stroke: "#2a2a35" },
+  1: { fill: "rgba(201, 118, 47, 0.28)", stroke: "rgba(201, 118, 47, 0.45)" },
+  2: { fill: "rgba(201, 118, 47, 0.52)", stroke: "rgba(201, 118, 47, 0.68)" },
+  3: { fill: "rgba(201, 118, 47, 0.78)", stroke: "rgba(201, 118, 47, 0.90)" },
+  4: { fill: "#c9762f", stroke: "rgba(232, 232, 240, 0.40)" },
 };
+
+const CELL_SIZE = 10.5;
+const CELL_GAP = 3;
+const CELL_RADIUS = 2;
+const LEFT_PAD = 26;
+const TOP_PAD = 16;
 
 export function ContributionHeatmap({
   data = [],
   timezone = "Asia/Manila",
   title = "Contribution Activity",
-  subtitle = "Daily focus time across the past 365 days",
+  subtitle = "Daily focus time recorded across the past 365 days",
   loading = false,
   daysCount = 365,
   onDayClick,
@@ -69,9 +78,12 @@ export function ContributionHeatmap({
     }
   };
 
+  const viewBoxWidth = LEFT_PAD + weeks.length * (CELL_SIZE + CELL_GAP);
+  const viewBoxHeight = TOP_PAD + 7 * (CELL_SIZE + CELL_GAP);
+
   return (
     <div
-      className={`p-6 border border-border rounded-xl space-y-4 bg-bg-surface text-text-primary relative ${className}`}
+      className={`p-6 border border-border rounded-xl space-y-5 bg-bg-surface text-text-primary relative ${className}`}
     >
       {/* Header with Title and Aggregate Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -95,114 +107,12 @@ export function ContributionHeatmap({
         )}
       </div>
 
-      {/* Grid Canvas + Annual Insights Sidebar */}
-      {loading ? (
-        <div className="pt-3 pb-2">
-          <Skeleton className="h-[140px] w-full rounded-lg" />
-        </div>
-      ) : (
-        <div className="flex flex-col xl:flex-row xl:items-center gap-6 justify-between pt-1">
-          {/* Left / Compact Heatmap Matrix */}
-          <div className="overflow-x-auto pb-2 scrollbar-thin flex-1 min-w-0">
-            <div className="inline-block">
-              {/* Month Labels Row */}
-              <div className="flex items-center mb-1.5 pl-8">
-                <div
-                  className="grid auto-cols-[12px] gap-[3px]"
-                  style={{
-                    gridTemplateColumns: `repeat(${weeks.length}, 12px)`,
-                  }}
-                >
-                  {monthHeaders.map((header) => (
-                    <span
-                      key={`${header.label}-${header.weekIndex}`}
-                      className="text-[10px] font-mono text-text-muted leading-none select-none"
-                      style={{
-                        gridColumnStart: header.weekIndex + 1,
-                      }}
-                    >
-                      {header.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Main 7-Row Grid with Day-of-Week Labels */}
-              <div className="flex items-start gap-2">
-                {/* Day of Week Labels (Y-Axis) */}
-                <div className="grid grid-rows-7 gap-[3px] text-[9px] font-mono text-text-muted select-none pt-[1px] w-6 text-right">
-                  <span className="h-3 leading-3"></span>
-                  <span className="h-3 leading-3">Mon</span>
-                  <span className="h-3 leading-3"></span>
-                  <span className="h-3 leading-3">Wed</span>
-                  <span className="h-3 leading-3"></span>
-                  <span className="h-3 leading-3">Fri</span>
-                  <span className="h-3 leading-3"></span>
-                </div>
-
-                {/* 53 Column Week Grid */}
-                <div
-                  className="grid auto-cols-[12px] gap-[3px] grid-flow-col"
-                  style={{
-                    gridTemplateColumns: `repeat(${weeks.length}, 12px)`,
-                  }}
-                  role="grid"
-                  aria-label="Contribution Activity Heatmap"
-                >
-                  {weeks.map((week, weekIdx) => (
-                    <div
-                      key={`week-${weekIdx}`}
-                      className="grid grid-rows-7 gap-[3px]"
-                      role="row"
-                    >
-                      {week.map((cell) => {
-                        if (!cell.inRange) {
-                          return (
-                            <div
-                              key={cell.date}
-                              className="w-3 h-3 opacity-0 pointer-events-none"
-                              aria-hidden="true"
-                            />
-                          );
-                        }
-
-                        const levelClass = LEVEL_CLASS_MAP[cell.level];
-
-                        return (
-                          <button
-                            key={cell.date}
-                            type="button"
-                            tabIndex={0}
-                            aria-label={`${formatTooltipDate(cell.date)}: ${
-                              cell.totalDuration > 0
-                                ? formatDuration(cell.totalDuration)
-                                : "No activity"
-                            }`}
-                            onClick={() => onDayClick?.(cell)}
-                            onMouseEnter={(e) => {
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              setHoveredCell({
-                                cell,
-                                x: rect.left + rect.width / 2,
-                                y: rect.top,
-                              });
-                            }}
-                            onMouseLeave={() => setHoveredCell(null)}
-                            className={`w-3 h-3 rounded-[2.5px] transition-all cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
-                          />
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right / Annual Insights Sidebar */}
-          <div className="xl:w-56 shrink-0 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-1 gap-2.5 xl:border-l xl:border-border-subtle xl:pl-6 pt-2 xl:pt-0">
-            <div className="p-2.5 rounded-lg bg-bg-elevated/60 border border-border-subtle space-y-1">
-              <div className="flex items-center gap-1.5 text-text-muted text-[11px]">
+      {/* 3 Core Value-Add Stat Badges */}
+      {!loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
+            <div className="space-y-0.5">
+              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-accent" />
                 <span>Longest Streak</span>
               </div>
@@ -210,9 +120,14 @@ export function ContributionHeatmap({
                 {longestStreak} {longestStreak === 1 ? "day" : "days"}
               </div>
             </div>
+            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60">
+              Streak
+            </span>
+          </div>
 
-            <div className="p-2.5 rounded-lg bg-bg-elevated/60 border border-border-subtle space-y-1">
-              <div className="flex items-center gap-1.5 text-text-muted text-[11px]">
+          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
+            <div className="space-y-0.5">
+              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-accent" />
                 <span>Active Day Avg</span>
               </div>
@@ -220,9 +135,14 @@ export function ContributionHeatmap({
                 {formatDuration(dailyAverageSeconds)}
               </div>
             </div>
+            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60">
+              Daily
+            </span>
+          </div>
 
-            <div className="p-2.5 rounded-lg bg-bg-elevated/60 border border-border-subtle space-y-1 col-span-2 sm:col-span-1 xl:col-span-1">
-              <div className="flex items-center gap-1.5 text-text-muted text-[11px]">
+          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0 pr-2">
+              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-accent" />
                 <span>Most Active Day</span>
               </div>
@@ -232,7 +152,126 @@ export function ContributionHeatmap({
                   : "—"}
               </div>
             </div>
+            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60 shrink-0">
+              Peak
+            </span>
           </div>
+        </div>
+      )}
+
+      {/* SVG Edge-to-Edge Responsive Contribution Heatmap Graph */}
+      {loading ? (
+        <div className="pt-2 pb-2">
+          <Skeleton className="h-[140px] w-full rounded-lg" />
+        </div>
+      ) : (
+        <div className="w-full overflow-x-auto scrollbar-thin pt-1 pb-1">
+          <svg
+            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            className="w-full h-auto min-w-[700px] overflow-visible select-none"
+            role="grid"
+            aria-label="Contribution Activity Heatmap"
+          >
+            {/* Month Labels (Top X-Axis) */}
+            {monthHeaders.map((header) => {
+              const x = LEFT_PAD + header.weekIndex * (CELL_SIZE + CELL_GAP);
+              return (
+                <text
+                  key={`${header.label}-${header.weekIndex}`}
+                  x={x}
+                  y={10}
+                  fill="var(--devlog-text-muted)"
+                  fontSize={8.5}
+                  fontFamily="ui-monospace, monospace"
+                  textAnchor="start"
+                >
+                  {header.label}
+                </text>
+              );
+            })}
+
+            {/* Day of Week Labels (Y-Axis) */}
+            <text
+              x={LEFT_PAD - 5}
+              y={TOP_PAD + 1 * (CELL_SIZE + CELL_GAP) + 8}
+              fill="var(--devlog-text-muted)"
+              fontSize={8}
+              fontFamily="ui-monospace, monospace"
+              textAnchor="end"
+            >
+              Mon
+            </text>
+            <text
+              x={LEFT_PAD - 5}
+              y={TOP_PAD + 3 * (CELL_SIZE + CELL_GAP) + 8}
+              fill="var(--devlog-text-muted)"
+              fontSize={8}
+              fontFamily="ui-monospace, monospace"
+              textAnchor="end"
+            >
+              Wed
+            </text>
+            <text
+              x={LEFT_PAD - 5}
+              y={TOP_PAD + 5 * (CELL_SIZE + CELL_GAP) + 8}
+              fill="var(--devlog-text-muted)"
+              fontSize={8}
+              fontFamily="ui-monospace, monospace"
+              textAnchor="end"
+            >
+              Fri
+            </text>
+
+            {/* 53 Column Week Rectangles */}
+            {weeks.map((week, weekIdx) => {
+              const x = LEFT_PAD + weekIdx * (CELL_SIZE + CELL_GAP);
+
+              return (
+                <g key={`week-${weekIdx}`}>
+                  {week.map((cell) => {
+                    if (!cell.inRange) return null;
+
+                    const y = TOP_PAD + cell.dayOfWeek * (CELL_SIZE + CELL_GAP);
+                    const style = LEVEL_STYLE_MAP[cell.level];
+
+                    return (
+                      <rect
+                        key={cell.date}
+                        x={x}
+                        y={y}
+                        width={CELL_SIZE}
+                        height={CELL_SIZE}
+                        rx={CELL_RADIUS}
+                        ry={CELL_RADIUS}
+                        fill={style.fill}
+                        stroke={style.stroke}
+                        strokeWidth={0.8}
+                        className="cursor-pointer transition-all duration-150 hover:stroke-[rgba(232,232,240,0.9)] hover:stroke-[1.2px]"
+                        onClick={() => onDayClick?.(cell)}
+                        onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setHoveredCell({
+                            cell,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }}
+                        onMouseLeave={() => setHoveredCell(null)}
+                      >
+                        <title>
+                          {`${formatTooltipDate(cell.date)}: ${
+                            cell.totalDuration > 0
+                              ? formatDuration(cell.totalDuration)
+                              : "No activity"
+                          }`}
+                        </title>
+                      </rect>
+                    );
+                  })}
+                </g>
+              );
+            })}
+          </svg>
         </div>
       )}
 
@@ -279,23 +318,23 @@ export function ContributionHeatmap({
           <span>Less</span>
           <div className="flex items-center gap-[3px]">
             <span
-              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[0]}`}
+              className="w-[11px] h-[11px] rounded-[2px] bg-bg-elevated/70 border border-border-subtle/50"
               title="0 mins"
             />
             <span
-              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[1]}`}
+              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.28)] border border-[rgba(201,118,47,0.45)]"
               title="≤ 30 mins"
             />
             <span
-              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[2]}`}
+              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.52)] border border-[rgba(201,118,47,0.68)]"
               title="30 mins – 1.5 hrs"
             />
             <span
-              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[3]}`}
+              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.78)] border border-[rgba(201,118,47,0.90)]"
               title="1.5 hrs – 3 hrs"
             />
             <span
-              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[4]}`}
+              className="w-[11px] h-[11px] rounded-[2px] bg-accent border border-[rgba(232,232,240,0.30)] shadow-[0_0_8px_rgba(201,118,47,0.25)]"
               title="> 3 hrs"
             />
           </div>
