@@ -220,10 +220,10 @@ export function DashboardPage() {
         ) : null}
       </div>
 
-      {/* 2. Middle Section: Two-Column Split (Today's Sessions + Weekly Chart) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 2. Middle Section: Two-Column Split (Equal Height Cards) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: Today's Activity & Standup Section */}
-        <div className="lg:col-span-7 p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
+        <div className="lg:col-span-7 p-6 border border-border rounded-xl space-y-4 bg-bg-surface flex flex-col h-full">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-semibold tracking-tight">
@@ -242,7 +242,7 @@ export function DashboardPage() {
           </div>
 
           {isTodaySessionsLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 flex flex-col justify-center">
               {Array.from({ length: 2 }).map((_, idx) => (
                 <Card key={idx}>
                   <CardContent className="space-y-2 py-4">
@@ -255,7 +255,7 @@ export function DashboardPage() {
               ))}
             </div>
           ) : todaySessions.length === 0 ? (
-            <div className="py-8 text-center border border-dashed rounded-lg border-border-subtle">
+            <div className="flex-1 flex flex-col items-center justify-center py-8 text-center border border-dashed rounded-lg border-border-subtle">
               <Clock
                 className="h-8 w-8 mx-auto mb-2 opacity-40"
                 style={{ color: "var(--devlog-text-muted)" }}
@@ -268,7 +268,7 @@ export function DashboardPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin">
               {todaySessions.map((session) => (
                 <SessionCard
                   key={session._id || session.id}
@@ -282,7 +282,7 @@ export function DashboardPage() {
         </div>
 
         {/* Right Column: Time by SessionType Bar Chart */}
-        <div className="lg:col-span-5 p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
+        <div className="lg:col-span-5 p-6 border border-border rounded-xl space-y-4 bg-bg-surface flex flex-col h-full">
           <div>
             <h3 className="text-base font-semibold tracking-tight">
               Time Spent by Session Type
@@ -293,7 +293,7 @@ export function DashboardPage() {
           </div>
 
           {isLoading ? (
-            <div className="h-64 flex items-end gap-4 pt-8 px-4">
+            <div className="flex-1 min-h-[260px] flex items-end gap-4 pt-8 px-4">
               <Skeleton className="h-2/3 flex-1 rounded-t" />
               <Skeleton className="h-full flex-1 rounded-t" />
               <Skeleton className="h-1/2 flex-1 rounded-t" />
@@ -301,7 +301,7 @@ export function DashboardPage() {
               <Skeleton className="h-1/3 flex-1 rounded-t" />
             </div>
           ) : !isError ? (
-            <div className="h-72 w-full pt-4">
+            <div className="flex-1 min-h-[260px] w-full pt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis
