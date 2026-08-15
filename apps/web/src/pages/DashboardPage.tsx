@@ -178,17 +178,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* 1. Prominent 365-Day Activity Heatmap (Hero Section) */}
-      {!isError && (
-        <ContributionHeatmap
-          data={activityData}
-          loading={isActivityLoading}
-          title="Activity Calendar"
-          subtitle="Daily focus time recorded over the past 365 days"
-        />
-      )}
-
-      {/* 2. Top 4 Stat Cards */}
+      {/* 1. Top 4 Stat Cards (KPI Numbers First) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, idx) => (
@@ -230,7 +220,7 @@ export function DashboardPage() {
         ) : null}
       </div>
 
-      {/* 3. Two-Column Split: Today's Sessions (Left) + Weekly Bar Chart (Right) */}
+      {/* 2. Middle Section: Two-Column Split (Today's Sessions + Weekly Chart) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Today's Activity & Standup Section */}
         <div className="lg:col-span-7 p-6 border border-border rounded-xl space-y-4 bg-bg-surface">
@@ -365,6 +355,16 @@ export function DashboardPage() {
           ) : null}
         </div>
       </div>
+
+      {/* 3. Bottom Section: 365-Day GitHub-Style Activity Heatmap */}
+      {!isError && (
+        <ContributionHeatmap
+          data={activityData}
+          loading={isActivityLoading}
+          title="Activity Calendar"
+          subtitle="Daily focus time recorded over the past 365 days"
+        />
+      )}
     </div>
   );
 }
