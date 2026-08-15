@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { buildHeatmapGrid, type HeatmapCell } from "@/lib/heatmap.util";
 import type { DailyActivityPoint } from "@devlog/types";
 import { formatDuration } from "@/lib/formatters";
@@ -16,22 +16,18 @@ export interface ContributionHeatmapProps {
   className?: string;
 }
 
-const LEVEL_STYLE_MAP: Record<
-  0 | 1 | 2 | 3 | 4,
-  { fill: string; stroke: string }
-> = {
-  0: { fill: "#1c1c21", stroke: "#2a2a35" },
-  1: { fill: "rgba(201, 118, 47, 0.28)", stroke: "rgba(201, 118, 47, 0.45)" },
-  2: { fill: "rgba(201, 118, 47, 0.52)", stroke: "rgba(201, 118, 47, 0.68)" },
-  3: { fill: "rgba(201, 118, 47, 0.78)", stroke: "rgba(201, 118, 47, 0.90)" },
-  4: { fill: "#c9762f", stroke: "rgba(232, 232, 240, 0.40)" },
+const LEVEL_CLASS_MAP: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "bg-bg-elevated/70 border border-border-subtle/50 hover:border-border",
+  1: "bg-[rgba(201,118,47,0.25)] border border-[rgba(201,118,47,0.40)]",
+  2: "bg-[rgba(201,118,47,0.50)] border border-[rgba(201,118,47,0.65)]",
+  3: "bg-[rgba(201,118,47,0.76)] border border-[rgba(201,118,47,0.88)]",
+  4: "bg-accent border border-[rgba(232,232,240,0.30)] shadow-[0_0_8px_rgba(201,118,47,0.25)]",
 };
 
-const CELL_SIZE = 10.5;
-const CELL_GAP = 3;
-const CELL_RADIUS = 2;
 const LEFT_PAD = 26;
-const TOP_PAD = 16;
+const GAP = 3;
+const MIN_CELL_SIZE = 10;
+const MAX_CELL_SIZE = 16;
 
 export function ContributionHeatmap({
   data = [],
@@ -43,11 +39,39 @@ export function ContributionHeatmap({
   onDayClick,
   className = "",
 }: ContributionHeatmapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
   const [hoveredCell, setHoveredCell] = useState<{
     cell: HeatmapCell;
     x: number;
     y: number;
   } | null>(null);
+
+  // Measure container width via ResizeObserver to dynamically compute cell size
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateWidth = () => {
+      if (el) {
+        setContainerWidth(el.clientWidth);
+      }
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const {
     weeks,
@@ -61,6 +85,16 @@ export function ContributionHeatmap({
     () => buildHeatmapGrid(data, timezone, daysCount),
     [data, timezone, daysCount]
   );
+
+  // Compute responsive cell size based on measured container width
+  const cellSize = useMemo(() => {
+    const numWeeks = weeks.length || 53;
+    if (!containerWidth) return 12;
+
+    const available = containerWidth - LEFT_PAD - (numWeeks - 1) * GAP;
+    const computed = Math.floor(available / numWeeks);
+    return Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, computed));
+  }, [containerWidth, weeks.length]);
 
   const formatTooltipDate = (dateStr: string) => {
     try {
@@ -78,12 +112,9 @@ export function ContributionHeatmap({
     }
   };
 
-  const viewBoxWidth = LEFT_PAD + weeks.length * (CELL_SIZE + CELL_GAP);
-  const viewBoxHeight = TOP_PAD + 7 * (CELL_SIZE + CELL_GAP);
-
   return (
     <div
-      className={`p-6 border border-border rounded-xl space-y-5 bg-bg-surface text-text-primary relative ${className}`}
+      className={`p-6 border border-border rounded-xl space-y-5 bg-bg-surface text-text-primary w-full max-w-full min-w-0 relative ${className}`}
     >
       {/* Header with Title and Aggregate Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -159,121 +190,129 @@ export function ContributionHeatmap({
         </div>
       )}
 
-      {/* SVG Edge-to-Edge Responsive Contribution Heatmap Graph */}
-      {loading ? (
-        <div className="pt-2 pb-2">
-          <Skeleton className="h-[140px] w-full rounded-lg" />
-        </div>
-      ) : (
-        <div className="w-full overflow-x-auto scrollbar-thin pt-1 pb-1">
-          <svg
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-            className="w-full h-auto min-w-[700px] overflow-visible select-none"
-            role="grid"
-            aria-label="Contribution Activity Heatmap"
-          >
-            {/* Month Labels (Top X-Axis) */}
-            {monthHeaders.map((header) => {
-              const x = LEFT_PAD + header.weekIndex * (CELL_SIZE + CELL_GAP);
-              return (
-                <text
+      {/* Grid Canvas with Resize Observer Measurement */}
+      <div
+        ref={containerRef}
+        className="w-full max-w-full min-w-0 overflow-x-auto scrollbar-thin pt-1 pb-1"
+      >
+        {loading ? (
+          <div className="pt-2 pb-2">
+            <Skeleton className="h-[140px] w-full rounded-lg" />
+          </div>
+        ) : (
+          <div className="inline-block min-w-max">
+            {/* Month Labels Row */}
+            <div
+              className="grid mb-1.5 select-none"
+              style={{
+                gridTemplateColumns: `repeat(${weeks.length}, ${cellSize}px)`,
+                gap: `${GAP}px`,
+                paddingLeft: `${LEFT_PAD}px`,
+              }}
+            >
+              {monthHeaders.map((header) => (
+                <span
                   key={`${header.label}-${header.weekIndex}`}
-                  x={x}
-                  y={10}
-                  fill="var(--devlog-text-muted)"
-                  fontSize={8.5}
-                  fontFamily="ui-monospace, monospace"
-                  textAnchor="start"
+                  className="text-[10px] font-mono text-text-muted leading-none"
+                  style={{
+                    gridColumnStart: header.weekIndex + 1,
+                  }}
                 >
                   {header.label}
-                </text>
-              );
-            })}
+                </span>
+              ))}
+            </div>
 
-            {/* Day of Week Labels (Y-Axis) */}
-            <text
-              x={LEFT_PAD - 5}
-              y={TOP_PAD + 1 * (CELL_SIZE + CELL_GAP) + 8}
-              fill="var(--devlog-text-muted)"
-              fontSize={8}
-              fontFamily="ui-monospace, monospace"
-              textAnchor="end"
-            >
-              Mon
-            </text>
-            <text
-              x={LEFT_PAD - 5}
-              y={TOP_PAD + 3 * (CELL_SIZE + CELL_GAP) + 8}
-              fill="var(--devlog-text-muted)"
-              fontSize={8}
-              fontFamily="ui-monospace, monospace"
-              textAnchor="end"
-            >
-              Wed
-            </text>
-            <text
-              x={LEFT_PAD - 5}
-              y={TOP_PAD + 5 * (CELL_SIZE + CELL_GAP) + 8}
-              fill="var(--devlog-text-muted)"
-              fontSize={8}
-              fontFamily="ui-monospace, monospace"
-              textAnchor="end"
-            >
-              Fri
-            </text>
+            {/* Main 7-Row Grid with Day Labels */}
+            <div className="flex items-start">
+              {/* Day of Week Labels (Y-Axis) */}
+              <div
+                className="flex flex-col text-[9px] font-mono text-text-muted select-none text-right pr-2 shrink-0"
+                style={{
+                  width: `${LEFT_PAD}px`,
+                }}
+              >
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Mon</span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Wed</span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Fri</span>
+                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px` }}></span>
+              </div>
 
-            {/* 53 Column Week Rectangles */}
-            {weeks.map((week, weekIdx) => {
-              const x = LEFT_PAD + weekIdx * (CELL_SIZE + CELL_GAP);
+              {/* 53-Week Column Matrix */}
+              <div
+                className="grid grid-flow-col"
+                style={{
+                  gridTemplateColumns: `repeat(${weeks.length}, ${cellSize}px)`,
+                  gap: `${GAP}px`,
+                }}
+                role="grid"
+                aria-label="Contribution Activity Heatmap"
+              >
+                {weeks.map((week, weekIdx) => (
+                  <div
+                    key={`week-${weekIdx}`}
+                    className="grid grid-rows-7"
+                    style={{
+                      gap: `${GAP}px`,
+                    }}
+                    role="row"
+                  >
+                    {week.map((cell) => {
+                      if (!cell.inRange) {
+                        return (
+                          <div
+                            key={cell.date}
+                            style={{
+                              width: `${cellSize}px`,
+                              height: `${cellSize}px`,
+                            }}
+                            className="opacity-0 pointer-events-none"
+                            aria-hidden="true"
+                          />
+                        );
+                      }
 
-              return (
-                <g key={`week-${weekIdx}`}>
-                  {week.map((cell) => {
-                    if (!cell.inRange) return null;
+                      const levelClass = LEVEL_CLASS_MAP[cell.level];
 
-                    const y = TOP_PAD + cell.dayOfWeek * (CELL_SIZE + CELL_GAP);
-                    const style = LEVEL_STYLE_MAP[cell.level];
-
-                    return (
-                      <rect
-                        key={cell.date}
-                        x={x}
-                        y={y}
-                        width={CELL_SIZE}
-                        height={CELL_SIZE}
-                        rx={CELL_RADIUS}
-                        ry={CELL_RADIUS}
-                        fill={style.fill}
-                        stroke={style.stroke}
-                        strokeWidth={0.8}
-                        className="cursor-pointer transition-all duration-150 hover:stroke-[rgba(232,232,240,0.9)] hover:stroke-[1.2px]"
-                        onClick={() => onDayClick?.(cell)}
-                        onMouseEnter={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setHoveredCell({
-                            cell,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                        }}
-                        onMouseLeave={() => setHoveredCell(null)}
-                      >
-                        <title>
-                          {`${formatTooltipDate(cell.date)}: ${
+                      return (
+                        <button
+                          key={cell.date}
+                          type="button"
+                          tabIndex={0}
+                          style={{
+                            width: `${cellSize}px`,
+                            height: `${cellSize}px`,
+                            borderRadius: "2px",
+                          }}
+                          aria-label={`${formatTooltipDate(cell.date)}: ${
                             cell.totalDuration > 0
                               ? formatDuration(cell.totalDuration)
                               : "No activity"
                           }`}
-                        </title>
-                      </rect>
-                    );
-                  })}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-      )}
+                          onClick={() => onDayClick?.(cell)}
+                          onMouseEnter={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setHoveredCell({
+                              cell,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
+                          }}
+                          onMouseLeave={() => setHoveredCell(null)}
+                          className={`transition-all duration-150 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Floating Tooltip */}
       {hoveredCell && (
@@ -318,23 +357,23 @@ export function ContributionHeatmap({
           <span>Less</span>
           <div className="flex items-center gap-[3px]">
             <span
-              className="w-[11px] h-[11px] rounded-[2px] bg-bg-elevated/70 border border-border-subtle/50"
+              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[0]}`}
               title="0 mins"
             />
             <span
-              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.28)] border border-[rgba(201,118,47,0.45)]"
+              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[1]}`}
               title="≤ 30 mins"
             />
             <span
-              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.52)] border border-[rgba(201,118,47,0.68)]"
+              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[2]}`}
               title="30 mins – 1.5 hrs"
             />
             <span
-              className="w-[11px] h-[11px] rounded-[2px] bg-[rgba(201,118,47,0.78)] border border-[rgba(201,118,47,0.90)]"
+              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[3]}`}
               title="1.5 hrs – 3 hrs"
             />
             <span
-              className="w-[11px] h-[11px] rounded-[2px] bg-accent border border-[rgba(232,232,240,0.30)] shadow-[0_0_8px_rgba(201,118,47,0.25)]"
+              className={`w-[11px] h-[11px] rounded-[2px] ${LEVEL_CLASS_MAP[4]}`}
               title="> 3 hrs"
             />
           </div>

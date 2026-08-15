@@ -144,7 +144,7 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-background text-foreground">
+    <div className="p-6 space-y-6 min-h-screen bg-background text-foreground w-full max-w-full min-w-0">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
           Dashboard
