@@ -12,12 +12,14 @@ import { Clock, Flame, Activity, AlertCircle, RefreshCw, Timer } from "lucide-re
 import {
   useSessions,
   useSessionStats,
+  useSessionActivity,
   useDeleteSession,
   useUpdateSession,
 } from "@/features/sessions/hooks/useSessions";
 import { useDsaStats } from "@/features/dsa/hooks/useDsaStats";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboard";
 import { CopyStandupButton } from "@/features/sessions/components/CopyStandupButton";
+import { ContributionHeatmap } from "@/components/common/ContributionHeatmap";
 import {
   SessionCard,
   type SessionData,
@@ -75,21 +77,39 @@ export function DashboardPage() {
     refetch: refetchDashboard,
   } = useDashboardStats();
 
+  const {
+    data: activityData,
+    isLoading: isActivityLoading,
+    isError: isActivityError,
+    error: activityError,
+    refetch: refetchActivity,
+  } = useSessionActivity(365);
+
   const isLoading =
     isStatsLoading ||
     isDsaLoading ||
     isDashboardLoading ||
-    isTodaySessionsLoading;
+    isTodaySessionsLoading ||
+    isActivityLoading;
 
   const isError =
-    isStatsError || isDsaError || isDashboardError || isTodaySessionsError;
+    isStatsError ||
+    isDsaError ||
+    isDashboardError ||
+    isTodaySessionsError ||
+    isActivityError;
   const error =
-    statsError ?? dsaError ?? dashboardError ?? todaySessionsError;
+    statsError ??
+    dsaError ??
+    dashboardError ??
+    todaySessionsError ??
+    activityError;
   const retry = () => {
     refetchStats();
     refetchDsa();
     refetchDashboard();
     refetchTodaySessions();
+    refetchActivity();
   };
 
   // Today's duration & session count from dashboard endpoint
@@ -332,6 +352,16 @@ export function DashboardPage() {
           </div>
         ) : null}
       </div>
+
+      {/* 365-Day GitHub-Style Activity Heatmap */}
+      {!isError && (
+        <ContributionHeatmap
+          data={activityData}
+          loading={isActivityLoading}
+          title="Activity Calendar"
+          subtitle="Daily focus time recorded over the past 365 days"
+        />
+      )}
     </div>
   );
 }
