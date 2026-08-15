@@ -26,8 +26,6 @@ const LEVEL_CLASS_MAP: Record<0 | 1 | 2 | 3 | 4, string> = {
 
 const LEFT_PAD = 26;
 const GAP = 3;
-const MIN_CELL_SIZE = 10;
-const MAX_CELL_SIZE = 16;
 
 export function ContributionHeatmap({
   data = [],
@@ -48,7 +46,7 @@ export function ContributionHeatmap({
     y: number;
   } | null>(null);
 
-  // Measure container width via ResizeObserver to dynamically compute cell size
+  // Measure container inner width in real-time via ResizeObserver
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -86,14 +84,22 @@ export function ContributionHeatmap({
     [data, timezone, daysCount]
   );
 
-  // Compute responsive cell size based on measured container width
-  const cellSize = useMemo(() => {
+  // Derive precise computed metrics for verification
+  const metrics = useMemo(() => {
     const numWeeks = weeks.length || 53;
-    if (!containerWidth) return 12;
+    const available = Math.max(0, containerWidth - LEFT_PAD);
+    const totalGap = (numWeeks - 1) * GAP;
+    const rawCell = available > totalGap ? (available - totalGap) / numWeeks : 10;
+    const computedCellSize = Number(rawCell.toFixed(2));
+    const totalGridWidth = Number((LEFT_PAD + numWeeks * computedCellSize + totalGap).toFixed(2));
+    const trailingGap = Number(Math.max(0, containerWidth - totalGridWidth).toFixed(2));
 
-    const available = containerWidth - LEFT_PAD - (numWeeks - 1) * GAP;
-    const computed = Math.floor(available / numWeeks);
-    return Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, computed));
+    return {
+      containerWidth,
+      computedCellSize,
+      totalGridWidth,
+      trailingGap,
+    };
   }, [containerWidth, weeks.length]);
 
   const formatTooltipDate = (dateStr: string) => {
@@ -114,83 +120,81 @@ export function ContributionHeatmap({
 
   return (
     <div
-      className={`p-6 border border-border rounded-xl space-y-5 bg-bg-surface text-text-primary w-full max-w-full min-w-0 relative ${className}`}
+      className={`p-5 sm:p-6 border border-border rounded-xl space-y-3.5 bg-bg-surface text-text-primary w-full max-w-full min-w-0 relative ${className}`}
     >
-      {/* Header with Title and Aggregate Stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      {/* Header with Title and Single-Line Inline Stats */}
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5">
         <div>
           <h3 className="text-base font-semibold tracking-tight">{title}</h3>
           <p className="text-xs text-text-muted">{subtitle}</p>
         </div>
 
         {!loading && (
-          <div className="flex items-center gap-3 text-xs">
-            <span className="font-mono text-accent font-medium bg-bg-elevated px-2.5 py-1 rounded-md border border-border-subtle">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
+            <span className="font-mono text-accent font-medium bg-bg-elevated px-2.5 py-0.5 rounded-md border border-border-subtle">
               {formatDuration(totalSeconds)} logged
             </span>
+
             <span className="text-text-secondary">
               <strong className="text-text-primary font-mono font-medium">
                 {activeDaysCount}
               </strong>{" "}
               active day{activeDaysCount === 1 ? "" : "s"}
             </span>
+
+            <span className="text-border-subtle select-none">•</span>
+
+            <div
+              className="flex items-center gap-1 text-text-secondary"
+              title="Longest continuous active streak"
+            >
+              <Trophy className="w-3.5 h-3.5 text-accent" />
+              <span>
+                <strong className="text-text-primary font-mono font-medium">
+                  {longestStreak}
+                </strong>
+                d max streak
+              </span>
+            </div>
+
+            <span className="text-border-subtle select-none">•</span>
+
+            <div
+              className="flex items-center gap-1 text-text-secondary"
+              title="Average focus time per active day"
+            >
+              <Zap className="w-3.5 h-3.5 text-accent" />
+              <span>
+                <strong className="text-text-primary font-mono font-medium">
+                  {formatDuration(dailyAverageSeconds)}
+                </strong>
+                /day
+              </span>
+            </div>
+
+            {bestDay && (
+              <>
+                <span className="text-border-subtle select-none">•</span>
+                <div
+                  className="flex items-center gap-1 text-text-secondary"
+                  title="Highest daily focus time"
+                >
+                  <Flame className="w-3.5 h-3.5 text-accent" />
+                  <span>
+                    Peak:{" "}
+                    <strong className="text-text-primary font-mono font-medium">
+                      {formatTooltipDate(bestDay.date).replace(/, \d{4}$/, "")}
+                    </strong>{" "}
+                    ({formatDuration(bestDay.totalDuration)})
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
 
-      {/* 3 Core Value-Add Stat Badges */}
-      {!loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5 text-accent" />
-                <span>Longest Streak</span>
-              </div>
-              <div className="font-mono text-sm font-semibold text-text-primary">
-                {longestStreak} {longestStreak === 1 ? "day" : "days"}
-              </div>
-            </div>
-            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60">
-              Streak
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-accent" />
-                <span>Active Day Avg</span>
-              </div>
-              <div className="font-mono text-sm font-semibold text-text-primary">
-                {formatDuration(dailyAverageSeconds)}
-              </div>
-            </div>
-            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60">
-              Daily
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-bg-elevated/50 border border-border-subtle flex items-center justify-between">
-            <div className="space-y-0.5 min-w-0 pr-2">
-              <div className="text-[11px] text-text-muted flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-accent" />
-                <span>Most Active Day</span>
-              </div>
-              <div className="font-mono text-xs font-semibold text-text-primary truncate">
-                {bestDay
-                  ? `${formatTooltipDate(bestDay.date).replace(/, \d{4}$/, "")} (${formatDuration(bestDay.totalDuration)})`
-                  : "—"}
-              </div>
-            </div>
-            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider bg-bg-base px-2 py-0.5 rounded border border-border-subtle/60 shrink-0">
-              Peak
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Grid Canvas with Resize Observer Measurement */}
+      {/* Grid Canvas with Measured Width & 100% Span */}
       <div
         ref={containerRef}
         className="w-full max-w-full min-w-0 overflow-x-auto scrollbar-thin pt-1 pb-1"
@@ -200,12 +204,12 @@ export function ContributionHeatmap({
             <Skeleton className="h-[140px] w-full rounded-lg" />
           </div>
         ) : (
-          <div className="inline-block min-w-max">
+          <div className="w-full min-w-[660px]">
             {/* Month Labels Row */}
             <div
-              className="grid mb-1.5 select-none"
+              className="w-full grid mb-1.5 select-none"
               style={{
-                gridTemplateColumns: `repeat(${weeks.length}, ${cellSize}px)`,
+                gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
                 gap: `${GAP}px`,
                 paddingLeft: `${LEFT_PAD}px`,
               }}
@@ -224,32 +228,37 @@ export function ContributionHeatmap({
             </div>
 
             {/* Main 7-Row Grid with Day Labels */}
-            <div className="flex items-start">
+            <div className="flex items-start w-full">
               {/* Day of Week Labels (Y-Axis) */}
               <div
-                className="flex flex-col text-[9px] font-mono text-text-muted select-none text-right pr-2 shrink-0"
+                className="grid grid-rows-7 text-[9px] font-mono text-text-muted select-none text-right pr-2 shrink-0"
                 style={{
                   width: `${LEFT_PAD}px`,
+                  gap: `${GAP}px`,
                 }}
               >
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Mon</span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Wed</span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}></span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px`, marginBottom: `${GAP}px` }}>Fri</span>
-                <span style={{ height: `${cellSize}px`, lineHeight: `${cellSize}px` }}></span>
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Mon</span>
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Wed</span>
+                <span className="aspect-square flex items-center justify-end"></span>
+                <span className="aspect-square flex items-center justify-end">Fri</span>
+                <span className="aspect-square flex items-center justify-end"></span>
               </div>
 
-              {/* 53-Week Column Matrix */}
+              {/* 53-Week Column Matrix (100% Container Span) */}
               <div
-                className="grid grid-flow-col"
+                className="flex-1 grid grid-flow-col w-full"
                 style={{
-                  gridTemplateColumns: `repeat(${weeks.length}, ${cellSize}px)`,
+                  gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
                   gap: `${GAP}px`,
                 }}
                 role="grid"
                 aria-label="Contribution Activity Heatmap"
+                data-container-width={metrics.containerWidth}
+                data-computed-cell-size={metrics.computedCellSize}
+                data-total-grid-width={metrics.totalGridWidth}
+                data-trailing-gap={metrics.trailingGap}
               >
                 {weeks.map((week, weekIdx) => (
                   <div
@@ -265,11 +274,7 @@ export function ContributionHeatmap({
                         return (
                           <div
                             key={cell.date}
-                            style={{
-                              width: `${cellSize}px`,
-                              height: `${cellSize}px`,
-                            }}
-                            className="opacity-0 pointer-events-none"
+                            className="w-full aspect-square opacity-0 pointer-events-none"
                             aria-hidden="true"
                           />
                         );
@@ -282,11 +287,6 @@ export function ContributionHeatmap({
                           key={cell.date}
                           type="button"
                           tabIndex={0}
-                          style={{
-                            width: `${cellSize}px`,
-                            height: `${cellSize}px`,
-                            borderRadius: "2px",
-                          }}
                           aria-label={`${formatTooltipDate(cell.date)}: ${
                             cell.totalDuration > 0
                               ? formatDuration(cell.totalDuration)
@@ -302,7 +302,7 @@ export function ContributionHeatmap({
                             });
                           }}
                           onMouseLeave={() => setHoveredCell(null)}
-                          className={`transition-all duration-150 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
+                          className={`w-full aspect-square rounded-[2px] transition-all duration-150 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent ${levelClass} hover:scale-125 hover:z-20`}
                         />
                       );
                     })}
