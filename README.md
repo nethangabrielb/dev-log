@@ -2,28 +2,30 @@
 
 A developer activity tracker that logs time sessions against projects, DSA problems, articles, and snippets — then turns that raw activity into streaks, statistics, charts, and daily reports.
 
-**Live:** https://https://developer-logs.netlify.app
+**Live:** https://developer-logs.netlify.app
 
 ## Features
 
-- **Live session timer** — start/stop coding sessions with an inline todo checklist and link each session to a project, DSA problem, or article. Timer state persists to `localStorage` so tracked time survives network drops or accidental tab closes.
-- **Dashboard & streaks** — weekly time-by-session-type charts, current streak, total sessions, time logged today, and session frequency over time.
+- **Live session timer** — start/stop coding sessions with an inline todo checklist and link each session to a project, DSA problem, or article. Timer state persists to `localStorage` so tracked time survives network drops or accidental tab closes, complete with dynamic browser tab timer updates.
+- **Session export (CSV & Markdown)** — export session history in CSV or formatted Markdown with date range filtering (`from` / `to`) and timezone-aware local timestamp conversion.
+- **Daily standup generator** — generate and copy Markdown standup summaries directly from the dashboard with one click, listing completed and pending tasks grouped by session and project.
+- **Dashboard & streaks** — 4-column overview metrics (current streak, total sessions, time logged today, overall time logged), weekly time-by-session-type charts, and session frequency heatmaps over time.
 - **Project analytics** — per-project time logged, tasks completed, and 14-day session frequency chart with breakdowns by status and category. Filter and search across all projects.
 - **DSA problem tracker** — solved-problem log with difficulty, pattern, and confidence-level breakdowns.
 - **Reading list** — article backlog with Unread / Reading / Read statuses and reading-time statistics.
 - **Snippet library** — organized code snippets by language and category with Shiki syntax highlighting and one-click copy.
 - **Daily reports** — background-generated daily summaries via BullMQ + Redis.
-- **Authentication** — email / password (JWT stored in httpOnly cookies) plus Google OAuth 2.0.
+- **Authentication & Security** — email / password (JWT stored in httpOnly, SameSite cookies) plus Google OAuth 2.0, rate limiting, and Helmet security headers.
 - **Developer quality** — paginated APIs with a consistent response contract, request rate limiting, Helmet security headers, timezone-aware statistics, and a fully responsive dark-mode UI.
 
 ## Tech Stack
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router v7, React Hook Form + Zod, Recharts, shadcn/ui, Shiki |
-| **Backend** | Node.js, NestJS 11 (REST), Mongoose, Passport (JWT + Google OAuth), BullMQ |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query v5, React Router v7, React Hook Form + Zod, Recharts, shadcn/ui, Shiki |
+| **Backend** | Node.js, NestJS 11 (REST), Mongoose, Passport (JWT + Google OAuth 2.0), BullMQ, Throttler |
 | **Database** | MongoDB |
-| **Infrastructure** | Redis (BullMQ job queue), pnpm workspaces, Vercel (SPA deployment) |
+| **Infrastructure** | Redis (BullMQ job queue with TLS & auth), Docker (multi-stage build), Netlify (SPA deployment), Heroku, pnpm workspaces |
 
 ## Architecture
 
@@ -72,15 +74,18 @@ cp apps/web/.env.example apps/web/.env
 
 | Variable | Description | Default |
 |---|---|---|
-| `NODE_ENV` | Runtime environment | `development` |
+| `NODE_ENV` | Runtime environment (`development` / `production`) | `development` |
 | `JWT_SECRET` | Secret for signing JWT tokens — generate with `openssl rand -hex 32` | — |
 | `MONGODB_URI` | MongoDB connection string | `mongodb://user:password@localhost:27017/dev-log?authSource=admin` |
 | `REDIS_HOST` | Redis host for BullMQ | `localhost` |
 | `REDIS_PORT` | Redis port for BullMQ | `6379` |
+| `REDIS_PASSWORD` | Optional password for Redis authentication | — |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | — |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | — |
 | `GOOGLE_CALLBACK_URL` | Google OAuth callback URL | `http://localhost:3000/auth/google/callback` |
 | `FRONTEND_URL` | Allowed CORS origin | `http://localhost:5173` |
+
+> In `production` (`NODE_ENV=production`), Redis TLS is automatically enabled for secure cloud connections.
 
 **Web** (`apps/web/.env`):
 
@@ -159,16 +164,18 @@ dev-log/
 ## Challenges & Learnings
 
 - **Shared types across apps** — A `packages/types` workspace package ensures both API validation DTOs and client-side TypeScript agree on the same shapes and enums. Changing a backend enum propagates compile errors to the frontend immediately.
-- **Timezone-aware statistics** — Daily aggregates respect the user's timezone (carried in the JWT) with `date-fns-tz`, preventing day-boundary data leaks around midnight.
+- **Timezone-aware statistics & export** — Daily aggregates and session export engines respect the user's timezone (carried in the JWT or query parameter) with `date-fns-tz`, preventing day-boundary data leaks and delivering accurate local timestamps in CSV/Markdown exports.
 - **Consistent pagination** — All list endpoints return the same `{ data, total, page, limit, totalPages }` contract via a shared DTO, so the frontend handles one response shape everywhere.
 - **Resilient session tracking** — The active timer persists to `localStorage` and clears only after a successful save. Network failures surface errors without losing tracked time.
-- **SPA deep-link routing** — A `vercel.json` rewrite rule ensures BrowserRouter deep links don't 404 on the static host.
+- **SPA deep-link routing** — Static redirect configurations (e.g. Netlify `_redirects`) ensure BrowserRouter deep links don't 404 on static hosts.
+- **Standup & export generation** — Formats nested session activity (session types, linked projects/problems/articles, and todo checklists) into structured Markdown and CSV feeds ready for reports and team standups.
 
 ## Roadmap
 
+- [x] Export session history (CSV / Markdown)
+- [x] Daily standup summary generator (Markdown)
 - [ ] Recurring / scheduled daily reports with digest preferences
 - [ ] Mobile PWA support with offline session logging
-- [ ] Export session history (CSV / Markdown)
 - [ ] Team / shared projects support
 - [ ] Goals & reminders based on weekly activity
 
