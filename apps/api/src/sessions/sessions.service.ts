@@ -11,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Session } from './schemas/sessions.schema';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { generateZonedDateList } from '../common/timezone.util';
 import { PaginationQueryDto } from '../common/pagination-query.dto';
 import { buildPaginatedResult } from '../common/pagination.util';
 import {
@@ -23,6 +24,7 @@ import {
   SessionFilters,
   SessionType,
   ExportFormat,
+  DailyActivityPoint,
 } from '@devlog/types';
 
 @Injectable()
@@ -289,15 +291,53 @@ export class SessionsService {
     });
   }
 
+  async getDailyActivity(
+    userId: string,
+    timezone: string,
+    days: number = 365,
+  ): Promise<DailyActivityPoint[]> {
+    const { dateList, startDateUtc } = generateZonedDateList(timezone, days);
+
+    const results = await this.sessionModel.aggregate([
+      { $match: { userId, startedAt: { $gte: startDateUtc } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$startedAt',
+              timezone,
+            },
+          },
+          count: { $sum: 1 },
+          totalDuration: { $sum: '$durationInSeconds' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const map = new Map(
+      results.map((r) => [
+        r._id,
+        { count: r.count, totalDuration: r.totalDuration },
+      ]),
+    );
+
+    return dateList.map((date) => ({
+      date,
+      count: map.get(date)?.count ?? 0,
+      totalDuration: map.get(date)?.totalDuration ?? 0,
+    }));
+  }
+
   private async getSessionCountOverTime(
     userId: string,
     timezone: string,
   ): Promise<SessionCountOverTime[]> {
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    const { dateList, startDateUtc } = generateZonedDateList(timezone, 14);
 
     const results = await this.sessionModel.aggregate([
-      { $match: { userId, startedAt: { $gte: fourteenDaysAgo } } },
+      { $match: { userId, startedAt: { $gte: startDateUtc } } },
       {
         $group: {
           _id: {
@@ -313,15 +353,8 @@ export class SessionsService {
       { $sort: { _id: 1 } },
     ]);
 
-    const today = new Date();
-    const days = Array.from({ length: 14 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (13 - i));
-      return d.toLocaleDateString('en-CA', { timeZone: timezone });
-    });
-
     const map = Object.fromEntries(results.map((r) => [r._id, r.count]));
-    return days.map((date) => ({ date, count: map[date] ?? 0 }));
+    return dateList.map((date) => ({ date, count: map[date] ?? 0 }));
   }
 
   private async getLongestStreak(

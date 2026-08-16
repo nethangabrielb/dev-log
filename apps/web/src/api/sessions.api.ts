@@ -6,6 +6,7 @@ import type {
   SessionTodo,
   SessionType,
   ExportRequest,
+  DailyActivityPoint,
 } from "@devlog/types";
 
 export interface Session {
@@ -40,6 +41,11 @@ export const sessionsApi = {
   getStats: () => client.get("/sessions/statistics").then((r) => r.data),
 
   getStreaks: () => client.get("/sessions/streaks").then((r) => r.data),
+
+  getActivity: (days: number = 365) =>
+    client
+      .get<DailyActivityPoint[]>("/sessions/activity", { params: { days } })
+      .then((r) => r.data),
 
   export: (params: ExportRequest) =>
     client.get<Blob>("/sessions/export", {

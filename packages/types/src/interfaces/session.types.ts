@@ -24,3 +24,9 @@ export interface SessionFilters {
   startDate?: string;
   endDate?: string;
 }
+
+export interface DailyActivityPoint {
+  date: string;
+  count: number;
+  totalDuration: number;
+}

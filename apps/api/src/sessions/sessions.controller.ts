@@ -17,6 +17,7 @@ import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { SessionFiltersDto } from './dto/session-filters.dto';
 import { ExportSessionDto } from './dto/export-session.dto';
+import { DailyActivityQueryDto } from './dto/daily-activity-query.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -47,6 +48,13 @@ export class SessionsController {
     const userId = req.user.userId;
     const timezone = req.user.timezone || 'Etc/UTC';
     return this.sessionsService.getStatistics(userId, timezone);
+  }
+
+  @Get('activity')
+  getActivity(@Query() query: DailyActivityQueryDto, @Req() req: any) {
+    const userId = req.user.userId;
+    const timezone = query.timezone || req.user.timezone || 'Etc/UTC';
+    return this.sessionsService.getDailyActivity(userId, timezone, query.days);
   }
 
   @Get('export')

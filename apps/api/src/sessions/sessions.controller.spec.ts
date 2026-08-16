@@ -13,6 +13,7 @@ type MockSessionsService = {
   remove: jest.Mock;
   getStreaks: jest.Mock;
   getStatistics: jest.Mock;
+  getDailyActivity: jest.Mock;
   exportSessions: jest.Mock;
 };
 
@@ -40,6 +41,7 @@ describe('SessionsController', () => {
             remove: jest.fn(),
             getStreaks: jest.fn(),
             getStatistics: jest.fn(),
+            getDailyActivity: jest.fn(),
             exportSessions: jest.fn(),
           },
         },
@@ -125,6 +127,20 @@ describe('SessionsController', () => {
 
     await expect(controller.getStatistics(req)).resolves.toEqual(statistics);
     expect(service.getStatistics).toHaveBeenCalledWith('user-1', 'Asia/Manila');
+  });
+
+  it('should return daily activity from the service', async () => {
+    const activity = [{ date: '2026-08-15', count: 2, totalDuration: 3600 }];
+    service.getDailyActivity.mockResolvedValue(activity);
+
+    await expect(controller.getActivity({ days: 30 }, req)).resolves.toEqual(
+      activity,
+    );
+    expect(service.getDailyActivity).toHaveBeenCalledWith(
+      'user-1',
+      'Asia/Manila',
+      30,
+    );
   });
 
   it('should stream export sessions from the service', async () => {
