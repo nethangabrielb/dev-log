@@ -20,5 +20,6 @@ import { DailyReportScheduler } from './daily-report.scheduler';
   ],
   providers: [DailyReportService, DailyReportScheduler, DailyReportProcessor],
   controllers: [DailyReportController],
+  exports: [DailyReportScheduler],
 })
 export class DailyReportModule {}
