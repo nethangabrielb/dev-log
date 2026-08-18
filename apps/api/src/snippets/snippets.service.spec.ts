@@ -9,14 +9,22 @@ import { UpdateSnippetDto } from './dto/update-snippet.dto';
 const userId = 'user-1';
 const validId = '507f1f77bcf86cd799439011';
 
-const createQueryResult = <T>(value: T) => ({
-  exec: jest.fn().mockResolvedValue(value),
-});
+const createQueryResult = <T>(value: T) => {
+  const query: any = {
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(value),
+  };
+  return query;
+};
 
 type MockSnippetModel = {
   create: jest.Mock;
   find: jest.Mock;
   findById: jest.Mock;
+  countDocuments: jest.Mock;
 };
 
 describe('SnippetsService', () => {
@@ -35,6 +43,7 @@ describe('SnippetsService', () => {
             create: jest.fn(),
             find: jest.fn(),
             findById: jest.fn(),
+            countDocuments: jest.fn().mockResolvedValue(2),
           },
         },
       ],
@@ -69,8 +78,11 @@ describe('SnippetsService', () => {
   it('should return all snippets', async () => {
     const snippets = [{ id: 'snippet-1' }, { id: 'snippet-2' }];
     model.find.mockReturnValue(createQueryResult(snippets));
+    model.countDocuments.mockResolvedValue(2);
 
-    await expect(service.findAll(userId)).resolves.toEqual(snippets);
+    const result = await service.findAll(userId);
+    expect(result.data).toEqual(snippets);
+    expect(result.total).toBe(2);
     expect(model.find).toHaveBeenCalledWith({ userId });
   });
 

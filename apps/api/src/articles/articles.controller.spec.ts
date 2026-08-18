@@ -84,7 +84,7 @@ describe('ArticlesController', () => {
     service.getStatistics.mockResolvedValue(statistics);
 
     await expect(controller.getStatistics(req)).resolves.toEqual(statistics);
-    expect(service.getStatistics).toHaveBeenCalledWith('user-1');
+    expect(service.getStatistics).toHaveBeenCalledWith('user-1', 'Etc/UTC');
   });
 
   it('should return one article from the service', async () => {

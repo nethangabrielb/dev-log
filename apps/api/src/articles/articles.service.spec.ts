@@ -10,9 +10,16 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 const userId = 'user-1';
 const validId = '507f1f77bcf86cd799439011';
 
-const createQueryResult = <T>(value: T) => ({
-  exec: jest.fn().mockResolvedValue(value),
-});
+const createQueryResult = <T>(value: T) => {
+  const query: any = {
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(value),
+  };
+  return query;
+};
 
 describe('ArticlesService', () => {
   let service: ArticlesService;
@@ -21,6 +28,7 @@ describe('ArticlesService', () => {
     find: jest.Mock;
     findById: jest.Mock;
     aggregate: jest.Mock;
+    countDocuments: jest.Mock;
   };
   let sessionModel: { aggregate: jest.Mock };
 
@@ -37,6 +45,7 @@ describe('ArticlesService', () => {
             find: jest.fn(),
             findById: jest.fn(),
             aggregate: jest.fn(),
+            countDocuments: jest.fn().mockResolvedValue(1),
           },
         },
         {
@@ -80,8 +89,11 @@ describe('ArticlesService', () => {
   it('should return all articles for a user', async () => {
     const articles = [{ id: 'article-1' }];
     articleModel.find.mockReturnValue(createQueryResult(articles));
+    articleModel.countDocuments.mockResolvedValue(1);
 
-    await expect(service.findAll(userId)).resolves.toEqual(articles);
+    const result = await service.findAll(userId);
+    expect(result.data).toEqual(articles);
+    expect(result.total).toBe(1);
     expect(articleModel.find).toHaveBeenCalledWith({ userId });
   });
 

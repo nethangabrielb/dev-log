@@ -10,9 +10,16 @@ const userId = 'user-1';
 const timezone = 'Asia/Manila';
 const validId = '507f1f77bcf86cd799439011';
 
-const createQueryResult = <T>(value: T) => ({
-  exec: jest.fn().mockResolvedValue(value),
-});
+const createQueryResult = <T>(value: T) => {
+  const query: any = {
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(value),
+  };
+  return query;
+};
 
 describe('DsaService', () => {
   let service: DsaService;
@@ -72,8 +79,11 @@ describe('DsaService', () => {
   it('should return all dsa problems', async () => {
     const dsaProblems = [{ id: 'dsa-1' }, { id: 'dsa-2' }];
     mockDsaModel.find.mockReturnValue(createQueryResult(dsaProblems));
+    mockDsaModel.countDocuments.mockResolvedValue(2);
 
-    await expect(service.findAll(userId)).resolves.toEqual(dsaProblems);
+    const result = await service.findAll(userId);
+    expect(result.data).toEqual(dsaProblems);
+    expect(result.total).toBe(2);
     expect(mockDsaModel.find).toHaveBeenCalledWith({ userId });
   });
 

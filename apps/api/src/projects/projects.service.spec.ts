@@ -11,9 +11,16 @@ const userId = 'user-1';
 const timezone = 'Asia/Manila';
 const validId = '507f1f77bcf86cd799439011';
 
-const createQueryResult = <T>(value: T) => ({
-  exec: jest.fn().mockResolvedValue(value),
-});
+const createQueryResult = <T>(value: T) => {
+  const query: any = {
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(value),
+  };
+  return query;
+};
 
 type MockProjectModel = {
   create: jest.Mock;
@@ -26,7 +33,7 @@ type MockProjectModel = {
 describe('ProjectsService', () => {
   let service: ProjectsService;
   let model: MockProjectModel;
-  let sessionModel: { aggregate: jest.Mock };
+  let sessionModel: { aggregate: jest.Mock; updateMany: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -40,7 +47,7 @@ describe('ProjectsService', () => {
             create: jest.fn(),
             find: jest.fn(),
             findById: jest.fn(),
-            countDocuments: jest.fn(),
+            countDocuments: jest.fn().mockResolvedValue(2),
             aggregate: jest.fn(),
           },
         },
@@ -48,6 +55,9 @@ describe('ProjectsService', () => {
           provide: getModelToken(Session.name),
           useValue: {
             aggregate: jest.fn(),
+            updateMany: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+            }),
           },
         },
       ],
@@ -83,8 +93,11 @@ describe('ProjectsService', () => {
   it('should return all projects', async () => {
     const projects = [{ id: 'project-1' }, { id: 'project-2' }];
     model.find.mockReturnValue(createQueryResult(projects));
+    model.countDocuments.mockResolvedValue(2);
 
-    await expect(service.findAll(userId)).resolves.toEqual(projects);
+    const result = await service.findAll(userId);
+    expect(result.data).toEqual(projects);
+    expect(result.total).toBe(2);
     expect(model.find).toHaveBeenCalledWith({ userId });
   });
 
