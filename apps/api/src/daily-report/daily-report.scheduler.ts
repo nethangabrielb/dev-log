@@ -23,41 +23,106 @@ export class DailyReportScheduler implements OnModuleInit {
     return `daily-report:${userId}`;
   }
 
-  async onModuleInit() {
-    const users = await this.userModel.find().select('_id timezone').exec();
+  async upsertUserScheduler(userId: string, timezone?: string): Promise<void> {
+    const tz = normalizeTimezone(timezone);
+    await this.dailyReportQueue.upsertJobScheduler(
+      this.schedulerId(userId),
+      { pattern: DAILY_REPORT_CRON, tz },
+      {
+        name: JOB_NAME,
+        data: { userId, timezone: tz },
+      },
+    );
+  }
 
+  async removeUserScheduler(userId: string): Promise<void> {
+    await this.dailyReportQueue.removeJobScheduler(this.schedulerId(userId));
+  }
+
+  async onModuleInit() {
+    try {
+      await this.syncSchedulers();
+    } catch (err) {
+      this.logger.error(
+        'Failed to sync daily report schedulers on startup:',
+        err,
+      );
+    }
+  }
+
+  async syncSchedulers() {
+    // 1. Fetch existing schedulers from Redis in a single read
+    const existingSchedulers = await this.dailyReportQueue.getJobSchedulers();
+    const existingMap = new Map(
+      existingSchedulers.filter((s) => Boolean(s.key)).map((s) => [s.key, s]),
+    );
+
+    // 2. Fetch active users from DB
+    const users = await this.userModel
+      .find()
+      .select('_id timezone')
+      .lean()
+      .exec();
     const desiredSchedulerIds = new Set<string>();
 
+    let createdCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+    let removedCount = 0;
+
+    // 3. Diff and upsert only additions or modifications
     for (const user of users) {
       const userId = user._id.toString();
       const timezone = normalizeTimezone(user.timezone);
       const schedulerId = this.schedulerId(userId);
       desiredSchedulerIds.add(schedulerId);
 
-      // Idempotent upsert keyed by a deterministic id, so restarts never
-      // create duplicate schedulers. The timezone drives both when the job
-      // fires (tz) and which day the report covers.
-      await this.dailyReportQueue.upsertJobScheduler(
-        schedulerId,
-        { pattern: DAILY_REPORT_CRON, tz: timezone },
-        {
-          name: JOB_NAME,
-          data: { userId, timezone },
-        },
-      );
+      const existing = existingMap.get(schedulerId);
+
+      if (!existing) {
+        // Scheduler doesn't exist in Redis -> create
+        await this.dailyReportQueue.upsertJobScheduler(
+          schedulerId,
+          { pattern: DAILY_REPORT_CRON, tz: timezone },
+          {
+            name: JOB_NAME,
+            data: { userId, timezone },
+          },
+        );
+        createdCount++;
+      } else {
+        // Scheduler exists -> check if cron pattern or timezone changed
+        const patternChanged = existing.pattern !== DAILY_REPORT_CRON;
+        const tzChanged = (existing.tz ?? '') !== (timezone ?? '');
+
+        if (patternChanged || tzChanged) {
+          await this.dailyReportQueue.upsertJobScheduler(
+            schedulerId,
+            { pattern: DAILY_REPORT_CRON, tz: timezone },
+            {
+              name: JOB_NAME,
+              data: { userId, timezone },
+            },
+          );
+          updatedCount++;
+        } else {
+          skippedCount++;
+        }
+      }
     }
 
-    // Remove schedulers that no longer map to a user (deleted accounts or
-    // the legacy single global job from the previous design).
-    const existingSchedulers = await this.dailyReportQueue.getJobSchedulers();
+    // 4. Prune stale schedulers (deleted users or deprecated global jobs)
     for (const scheduler of existingSchedulers) {
       if (scheduler.key && !desiredSchedulerIds.has(scheduler.key)) {
         await this.dailyReportQueue.removeJobScheduler(scheduler.key);
+        removedCount++;
       }
     }
 
     this.logger.log(
-      `Scheduled daily reports for ${users.length} user(s) at 23:00 local time`,
+      `Daily report schedulers synced: ${skippedCount} unchanged (skipped writes), ` +
+        `${createdCount} created, ${updatedCount} updated, ${removedCount} removed ` +
+        `(${users.length} total users)`,
     );
   }
 }

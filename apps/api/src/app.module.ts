@@ -27,6 +27,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
         port: parseInt(process.env.REDIS_PORT!, 10),
         password: process.env.REDIS_PASSWORD,
         ...(process.env.NODE_ENV === 'production' ? { tls: {} } : {}),
+        maxRetriesPerRequest: null,
       },
     }),
     ThrottlerModule.forRoot([
