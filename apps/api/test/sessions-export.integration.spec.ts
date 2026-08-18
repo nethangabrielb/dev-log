@@ -5,7 +5,10 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { SessionsController } from '../src/sessions/sessions.controller';
 import { SessionsService } from '../src/sessions/sessions.service';
-import { Session, SessionSchema } from '../src/sessions/schemas/sessions.schema';
+import {
+  Session,
+  SessionSchema,
+} from '../src/sessions/schemas/sessions.schema';
 import { SessionType, ExportFormat } from '@devlog/types';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -167,7 +170,9 @@ describe('Sessions Export Integration Test (Real MongoDB)', () => {
 
     // Assert Session 2 (12:02 AM Manila on Jan 2) is INCLUDED with local Manila timestamps
     expect(rawMarkdown).toContain(session2Doc._id.toString());
-    expect(rawMarkdown).toContain('| DSA Problem | 600 | 2024-01-02 00:02:00 | 2024-01-02 00:12:00 |');
+    expect(rawMarkdown).toContain(
+      '| DSA Problem | 600 | 2024-01-02 00:02:00 | 2024-01-02 00:12:00 |',
+    );
     expect(rawMarkdown).toContain('[x] Binary Tree Traversal; [ ] Graph BFS');
   });
 
@@ -206,7 +211,9 @@ describe('Sessions Export Integration Test (Real MongoDB)', () => {
     }
     const rawCsv = Buffer.concat(chunksCsv).toString('utf-8');
 
-    console.log('\n--- RAW EXPORTED CSV (Read two pointers guide) ---\n' + rawCsv);
+    console.log(
+      '\n--- RAW EXPORTED CSV (Read two pointers guide) ---\n' + rawCsv,
+    );
 
     expect(rawCsv).toContain(studySession._id.toString());
     expect(rawCsv).toContain('Study');
@@ -231,9 +238,14 @@ describe('Sessions Export Integration Test (Real MongoDB)', () => {
     }
     const rawMarkdown = Buffer.concat(chunksMd).toString('utf-8');
 
-    console.log('\n--- RAW EXPORTED MARKDOWN (Read two pointers guide) ---\n' + rawMarkdown);
+    console.log(
+      '\n--- RAW EXPORTED MARKDOWN (Read two pointers guide) ---\n' +
+        rawMarkdown,
+    );
 
     expect(rawMarkdown).toContain(studySession._id.toString());
-    expect(rawMarkdown).toContain('| Study | 3600 | 2026-07-14 00:00:00 | 2026-07-14 01:00:00 | [x] Read two pointers guide |');
+    expect(rawMarkdown).toContain(
+      '| Study | 3600 | 2026-07-14 00:00:00 | 2026-07-14 01:00:00 | [x] Read two pointers guide |',
+    );
   });
 });

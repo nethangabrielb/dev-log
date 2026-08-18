@@ -122,7 +122,9 @@ describe('SessionsService', () => {
       chunks.push(chunk.toString());
     }
     const output = chunks.join('');
-    expect(output).toContain('ID,Type,Duration (Seconds),Started At,Ended At,Todos,Linked Kind,Linked ID');
+    expect(output).toContain(
+      'ID,Type,Duration (Seconds),Started At,Ended At,Todos,Linked Kind,Linked ID',
+    );
     expect(output).toContain('session-1');
     expect(output).toContain('[x] Task 1');
   });
@@ -164,7 +166,9 @@ describe('SessionsService', () => {
       chunks.push(chunk.toString());
     }
     const output = chunks.join('');
-    expect(output).toContain('| ID | Type | Duration (s) | Started At | Ended At | Todos | Linked Kind | Linked ID |');
+    expect(output).toContain(
+      '| ID | Type | Duration (s) | Started At | Ended At | Todos | Linked Kind | Linked ID |',
+    );
     expect(output).toContain('| session-1 | DSA Problem | 1800 |');
   });
 
@@ -183,8 +187,10 @@ describe('SessionsService', () => {
 
     mockSessionModel.find.mockImplementation((query: any) => {
       const filtered = allSessions.filter((s) => {
-        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte) return false;
-        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte) return false;
+        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte)
+          return false;
+        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte)
+          return false;
         return true;
       });
 
@@ -240,8 +246,10 @@ describe('SessionsService', () => {
 
     mockSessionModel.find.mockImplementation((query: any) => {
       const filtered = allSessions.filter((s) => {
-        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte) return false;
-        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte) return false;
+        if (query.startedAt?.$gte && s.startedAt < query.startedAt.$gte)
+          return false;
+        if (query.startedAt?.$lte && s.startedAt > query.startedAt.$lte)
+          return false;
         return true;
       });
 
@@ -423,6 +431,8 @@ describe('SessionsService', () => {
     });
 
     const inactiveEntries = activity.filter((a) => a.date !== today);
-    expect(inactiveEntries.every((a) => a.count === 0 && a.totalDuration === 0)).toBe(true);
+    expect(
+      inactiveEntries.every((a) => a.count === 0 && a.totalDuration === 0),
+    ).toBe(true);
   });
 });

@@ -44,7 +44,10 @@ export async function getDailyActivity(
     ]);
 
   const resultMap = new Map(
-    results.map((r) => [r._id, { count: r.count, totalDuration: r.totalDuration }]),
+    results.map((r) => [
+      r._id,
+      { count: r.count, totalDuration: r.totalDuration },
+    ]),
   );
 
   return dateList.map((date) => ({

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from '../users/schemas/users.schema';
+import { User } from '../users/schemas/users.schema';
 import { Session, SessionDocument } from '../sessions/schemas/sessions.schema';
 import { DailyReport } from './schema/daily-report.schema';
 import { normalizeTimezone } from '../common/timezone.util';
@@ -138,7 +138,9 @@ export class DailyReportService {
         breakdownBySessionType[0],
       ).type;
 
-      const date = new Date().toLocaleDateString('en-CA', { timeZone: timezone });
+      const date = new Date().toLocaleDateString('en-CA', {
+        timeZone: timezone,
+      });
 
       // $set preserves fields that are not part of the regeneration, e.g. an
       // existing isRead flag must not be reset when the same date re-runs.
