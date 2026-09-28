@@ -33,6 +33,11 @@ export interface ActiveSessionState {
   todos: SessionTodo[];
   mode: SessionMode;
   targetDurationInSeconds?: number;
+  iteration?: number;
+  isPaused?: boolean;
+  accumulatedSeconds?: number;
+  lastResumedAt?: Date | null;
+  isCompleted?: boolean;
 }
 
 export interface StartSessionOptions {
@@ -51,8 +56,28 @@ interface ActiveSessionContextValue {
   addTodo: (name: string) => void;
   toggleTodo: (index: number) => void;
   removeTodo: (index: number) => void;
+  pauseSession: () => void;
+  resumeSession: () => void;
+  startNextIteration: () => Promise<void>;
+  extendSession: (seconds: number) => void;
   stopSession: () => Promise<void>;
   cancelSession: () => void;
+}
+
+export function getSessionElapsedSeconds(
+  session: ActiveSessionState,
+  nowMs: number = Date.now()
+): number {
+  const base = session.accumulatedSeconds ?? 0;
+  if (session.isPaused || !session.lastResumedAt) {
+    return base;
+  }
+  const lastResumed =
+    session.lastResumedAt instanceof Date
+      ? session.lastResumedAt.getTime()
+      : new Date(session.lastResumedAt).getTime();
+  const running = Math.floor((nowMs - lastResumed) / 1000);
+  return base + Math.max(0, running);
 }
 
 const ActiveSessionContext = createContext<ActiveSessionContextValue | null>(
@@ -73,6 +98,18 @@ function loadStoredSession(): ActiveSessionState | null {
     ) {
       return null;
     }
+    const isPaused = Boolean(parsed.isPaused);
+    const accumulatedSeconds =
+      typeof parsed.accumulatedSeconds === "number"
+        ? parsed.accumulatedSeconds
+        : 0;
+    const lastResumedAt = parsed.lastResumedAt
+      ? new Date(parsed.lastResumedAt)
+      : null;
+    const isCompleted = Boolean(parsed.isCompleted);
+    const iteration =
+      typeof parsed.iteration === "number" ? parsed.iteration : 1;
+
     return {
       type: parsed.type as SessionType,
       linkedTo: parsed.linkedTo ?? null,
@@ -85,6 +122,11 @@ function loadStoredSession(): ActiveSessionState | null {
             ? parsed.targetDurationInSeconds
             : undefined
           : undefined,
+      iteration,
+      isPaused,
+      accumulatedSeconds,
+      lastResumedAt,
+      isCompleted,
     };
   } catch {
     return null;
@@ -103,7 +145,14 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
         STORAGE_KEY,
         JSON.stringify({
           ...activeSession,
-          startedAt: activeSession.startedAt.toISOString(),
+          startedAt:
+            activeSession.startedAt instanceof Date
+              ? activeSession.startedAt.toISOString()
+              : activeSession.startedAt,
+          lastResumedAt:
+            activeSession.lastResumedAt instanceof Date
+              ? activeSession.lastResumedAt.toISOString()
+              : activeSession.lastResumedAt ?? null,
         })
       );
     } else {
@@ -117,15 +166,27 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       return;
     }
     const update = () => {
-      const elapsed = Date.now() - activeSession.startedAt.getTime();
+      const elapsed = getSessionElapsedSeconds(activeSession);
+      if (activeSession.isCompleted) {
+        document.title = `🎉 [DONE] • ${APP_TITLE}`;
+        return;
+      }
+
+      let timeText = "";
       if (activeSession.mode === "timer") {
         const remaining = Math.max(
           0,
-          (activeSession.targetDurationInSeconds ?? 0) * 1000 - elapsed
+          (activeSession.targetDurationInSeconds ?? 0) - elapsed
         );
-        document.title = `${formatClock(remaining)} • ${APP_TITLE}`;
+        timeText = formatClock(remaining * 1000);
       } else {
-        document.title = `${formatClock(elapsed)} • ${APP_TITLE}`;
+        timeText = formatClock(elapsed * 1000);
+      }
+
+      if (activeSession.isPaused) {
+        document.title = `⏸ [PAUSED] ${timeText} • ${APP_TITLE}`;
+      } else {
+        document.title = `${timeText} • ${APP_TITLE}`;
       }
     };
     update();
@@ -146,14 +207,20 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       options?: StartSessionOptions
     ) => {
       const mode = options?.mode ?? "stopwatch";
+      const now = new Date();
       setActiveSession({
         type,
         linkedTo: linkedTo ?? null,
-        startedAt: new Date(),
+        startedAt: now,
         todos: initialTodos ?? [],
         mode,
         targetDurationInSeconds:
           mode === "timer" ? options?.targetDurationInSeconds : undefined,
+        iteration: 1,
+        isPaused: false,
+        accumulatedSeconds: 0,
+        lastResumedAt: now,
+        isCompleted: false,
       });
     },
     []
@@ -191,20 +258,56 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const pauseSession = useCallback(() => {
+    setActiveSession((prev) => {
+      if (!prev || prev.isPaused || prev.isCompleted) return prev;
+      const currentElapsed = getSessionElapsedSeconds(prev);
+      return {
+        ...prev,
+        isPaused: true,
+        accumulatedSeconds: currentElapsed,
+        lastResumedAt: null,
+      };
+    });
+  }, []);
+
+  const resumeSession = useCallback(() => {
+    setActiveSession((prev) => {
+      if (!prev || !prev.isPaused || prev.isCompleted) return prev;
+      return {
+        ...prev,
+        isPaused: false,
+        lastResumedAt: new Date(),
+      };
+    });
+  }, []);
+
+  const extendSession = useCallback((seconds: number) => {
+    setActiveSession((prev) => {
+      if (!prev || prev.mode !== "timer") return prev;
+      const currentTarget = prev.targetDurationInSeconds ?? 0;
+      return {
+        ...prev,
+        targetDurationInSeconds: currentTarget + seconds,
+        isCompleted: false,
+        isPaused: false,
+        lastResumedAt: new Date(),
+      };
+    });
+  }, []);
+
   const stopSession = useCallback(async () => {
     const current = activeSession;
     if (!current) return;
 
+    const durationInSeconds = Math.max(1, getSessionElapsedSeconds(current));
     const endedAt = new Date();
-    const durationInSeconds = Math.max(
-      1,
-      Math.round((endedAt.getTime() - current.startedAt.getTime()) / 1000)
-    );
+    const startedAt = new Date(endedAt.getTime() - durationInSeconds * 1000);
 
     const payload: CreateSessionDto = {
       type: current.type,
       durationInSeconds,
-      startedAt: current.startedAt,
+      startedAt,
       endedAt,
       todos: current.todos,
       ...(current.linkedTo ? { linkedTo: current.linkedTo } : {}),
@@ -225,30 +328,91 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     }
   }, [activeSession, queryClient]);
 
+  const startNextIteration = useCallback(async () => {
+    const current = activeSession;
+    if (!current) return;
+
+    const durationInSeconds = Math.max(1, getSessionElapsedSeconds(current));
+    const endedAt = new Date();
+    const startedAt = new Date(endedAt.getTime() - durationInSeconds * 1000);
+
+    const payload: CreateSessionDto = {
+      type: current.type,
+      durationInSeconds,
+      startedAt,
+      endedAt,
+      todos: current.todos,
+      ...(current.linkedTo ? { linkedTo: current.linkedTo } : {}),
+    };
+
+    const nextIterationNumber = (current.iteration ?? 1) + 1;
+
+    try {
+      await sessionsApi.create(payload);
+      toast.success(`Session logged. Starting iteration ${nextIterationNumber}!`);
+
+      const now = new Date();
+      setActiveSession({
+        type: current.type,
+        linkedTo: current.linkedTo ?? null,
+        startedAt: now,
+        todos: current.todos,
+        mode: current.mode,
+        targetDurationInSeconds: current.targetDurationInSeconds,
+        iteration: nextIterationNumber,
+        isPaused: false,
+        accumulatedSeconds: 0,
+        lastResumedAt: now,
+        isCompleted: false,
+      });
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "Failed to log session")
+      );
+    } finally {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    }
+  }, [activeSession, queryClient]);
+
   useEffect(() => {
-    if (!activeSession || activeSession.mode !== "timer") {
+    if (
+      !activeSession ||
+      activeSession.mode !== "timer" ||
+      activeSession.isCompleted
+    ) {
       autoStopFired.current = false;
+      return;
+    }
+    if (activeSession.isPaused) {
       return;
     }
     const targetSeconds = activeSession.targetDurationInSeconds ?? 0;
     const check = () => {
       if (autoStopFired.current) return;
-      const elapsed = Math.floor(
-        (Date.now() - activeSession.startedAt.getTime()) / 1000
-      );
+      const elapsed = getSessionElapsedSeconds(activeSession);
       if (elapsed >= targetSeconds) {
         autoStopFired.current = true;
         const label = formatDuration(targetSeconds);
-        void stopSession().then(() => {
-          playChime();
-          notifyTimerDone(label);
+        playChime();
+        notifyTimerDone(label);
+        setActiveSession((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            isCompleted: true,
+            isPaused: true,
+            accumulatedSeconds: targetSeconds,
+            lastResumedAt: null,
+          };
         });
       }
     };
     check();
     const interval = setInterval(check, 1000);
     return () => clearInterval(interval);
-  }, [activeSession, stopSession]);
+  }, [activeSession]);
 
   const cancelSession = useCallback(() => {
     setActiveSession(null);
@@ -261,10 +425,26 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       addTodo,
       toggleTodo,
       removeTodo,
+      pauseSession,
+      resumeSession,
+      startNextIteration,
+      extendSession,
       stopSession,
       cancelSession,
     }),
-    [activeSession, startSession, addTodo, toggleTodo, removeTodo, stopSession, cancelSession]
+    [
+      activeSession,
+      startSession,
+      addTodo,
+      toggleTodo,
+      removeTodo,
+      pauseSession,
+      resumeSession,
+      startNextIteration,
+      extendSession,
+      stopSession,
+      cancelSession,
+    ]
   );
 
   return (

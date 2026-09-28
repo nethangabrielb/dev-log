@@ -51,7 +51,7 @@ export function notifyTimerDone(durationLabel: string): void {
   if (Notification.permission === "granted") {
     try {
       new Notification("Time's up", {
-        body: `Session logged — ${durationLabel}`,
+        body: `Timer finished (${durationLabel}) — Ready to save or repeat`,
         icon: "/favicon.svg",
       });
     } catch {
