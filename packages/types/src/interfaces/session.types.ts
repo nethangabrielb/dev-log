@@ -1,6 +1,7 @@
 import { LinkedToKind, SessionType } from "../enums/session.enum.js";
 
 export interface SessionTodo {
+  _id?: string;
   name: string;
   completed: boolean;
 }

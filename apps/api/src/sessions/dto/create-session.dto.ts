@@ -16,6 +16,10 @@ import { SessionType, LinkedToKind } from '@devlog/types';
 
 // DTO shape of Session Todo
 class TodoDto {
+  @IsOptional()
+  @IsString()
+  _id?: string;
+
   @IsString()
   name!: string;
 

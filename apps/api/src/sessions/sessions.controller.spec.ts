@@ -3,6 +3,7 @@ import { SessionsController } from './sessions.controller';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { ValidationPipe } from '@nestjs/common';
 import { LinkedToKind, SessionType } from '@devlog/types';
 
 type MockSessionsService = {
@@ -197,6 +198,58 @@ describe('SessionsController', () => {
       updateSessionDto,
       'user-1',
     );
+  });
+
+  it('should update a session with todos containing _id', async () => {
+    const updateSessionDto: UpdateSessionDto = {
+      todos: [
+        {
+          _id: '673f1a2b3c4d5e6f7a8b9c0d',
+          name: 'Write tests',
+          completed: true,
+        },
+      ],
+    };
+    const updatedSession = { id: 'session-1', ...updateSessionDto };
+    service.update.mockResolvedValue(updatedSession);
+
+    await expect(
+      controller.update(req, 'session-1', updateSessionDto),
+    ).resolves.toEqual(updatedSession);
+    expect(service.update).toHaveBeenCalledWith(
+      'session-1',
+      updateSessionDto,
+      'user-1',
+    );
+  });
+
+  it('should allow _id in todos through strict ValidationPipe', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    });
+
+    const payload = {
+      todos: [
+        {
+          _id: '673f1a2b3c4d5e6f7a8b9c0d',
+          name: 'Toggle completed todo',
+          completed: true,
+        },
+      ],
+    };
+
+    const transformed = await pipe.transform(payload, {
+      type: 'body',
+      metatype: UpdateSessionDto,
+    });
+
+    expect(transformed.todos?.[0]).toEqual({
+      _id: '673f1a2b3c4d5e6f7a8b9c0d',
+      name: 'Toggle completed todo',
+      completed: true,
+    });
   });
 
   it('should remove a session through the service', async () => {
